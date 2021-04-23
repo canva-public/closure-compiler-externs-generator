@@ -4,7 +4,7 @@
   "description": "Generates externs for closure compiler from TypeScript declarations",
   "files": [
     "dist"
-  ],  
+  ],
   "main": "dist/index.js",
   "bin": "dist/cli.js",
   "repository": "git@github.com:canva-public/closure-compiler-externs-generator.git",
