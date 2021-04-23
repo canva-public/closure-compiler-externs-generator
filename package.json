@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "Generates externs for closure compiler from TypeScript declarations",
   "files": [
-    "dist",
-    "dist/src"
+    "dist"
   ],  
-  "main": "dist/src/index.js",
-  "bin": "dist/src/cli.js",
+  "main": "dist/index.js",
+  "bin": "dist/cli.js",
   "repository": "git@github.com:canva-public/closure-compiler-externs-generator.git",
   "author": "Canva Pty Ltd.",
   "license": "MIT",
@@ -35,7 +34,8 @@
     "test": "jest --ci --coverage",
     "test:watch": "jest --watch --notify",
     "preprepare": "husky install",
-    "prepare": "rm -rf ./dist && tsc --declarationDir dist --declaration"
+    "prepack": "tsc --declarationDir dist --declaration",
+    "prepare": "rm -rf ./dist"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",

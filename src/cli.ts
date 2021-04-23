@@ -1,9 +1,12 @@
+#!/usr/bin/env node
+
 import * as fs from 'fs';
 import * as path from 'path';
 import { Library } from './library';
 import assert from 'assert';
 import { processLibraries } from './index';
-import { name } from '../package.json';
+
+const name = '@canva-public/closure-compiler-externs-generator';
 
 function usage() {
   console.log(`usage: ${name} --out <dir> --librariesPath <path>  [--debug]
