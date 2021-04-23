@@ -1,12 +1,16 @@
 {
-  "name": "@canva/closure-compiler-externs-generator",
+  "name": "@canva-public/closure-compiler-externs-generator",
   "version": "1.0.0",
   "description": "Generates externs for closure compiler from TypeScript declarations",
-  "main": "index.js",
+  "files": [
+    "dist",
+    "dist/src"
+  ],  
+  "main": "dist/src/index.js",
+  "bin": "dist/src/cli.js",
   "repository": "git@github.com:canva-public/closure-compiler-externs-generator.git",
   "author": "Canva Pty Ltd.",
   "license": "MIT",
-  "private": true,
   "devDependencies": {
     "@sindresorhus/slugify": "^1.1.0",
     "@types/jest": "^26.0.22",
@@ -30,11 +34,12 @@
     "pretest": "prettier --check . && yarn eslint",
     "test": "jest --ci --coverage",
     "test:watch": "jest --watch --notify",
-    "prepare": "husky install"
+    "preprepare": "husky install",
+    "prepare": "rm -rf ./dist && tsc --declarationDir dist --declaration"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,md}": "prettier --write"
+    "*.{js,ts}": "eslint --cache --fix",
+    "*.{js,ts,css,md}": "prettier --write"
   },
   "dependencies": {
     "typescript": "^4.2.4",

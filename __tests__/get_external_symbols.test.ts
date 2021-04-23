@@ -1,7 +1,7 @@
 // Copyright 2021 Canva Inc. All Rights Reserved.
 
-import type { ExternalSymbol } from '../get_external_symbols';
-import { getExternalSymbols, SymbolType } from '../get_external_symbols';
+import type { ExternalSymbol } from '../src/get_external_symbols';
+import { getExternalSymbols, SymbolType } from '../src/get_external_symbols';
 
 describe('getExternalSymbols', () => {
   it('follows imports', () => {

@@ -1,7 +1,7 @@
-import { processLibraries, FS } from '../index';
+import { processLibraries, FS } from '../src/index';
 import { Volume, createFsFromVolume } from 'memfs';
 import { libraries } from './fixtures/libraries';
-import { applyDefaults, ExternImportError } from '../library';
+import { applyDefaults, ExternImportError } from '../src/library';
 
 function createVolumeAndFs() {
   const volume = new Volume();

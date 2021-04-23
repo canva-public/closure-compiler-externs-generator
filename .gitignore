@@ -2,4 +2,5 @@
 /.eslintcache
 /coverage
 /coverage-report.tar.gz
+/dist
 /node_modules

@@ -1,5 +1,5 @@
-import type { Library } from '../../library';
-import { applyDefaults } from '../../library';
+import type { Library } from '../../src/library';
+import { applyDefaults } from '../../src/library';
 
 const libraryConfigs: (Partial<Library> & { moduleName: string })[] = [
   {

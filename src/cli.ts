@@ -3,7 +3,7 @@ import * as path from 'path';
 import { Library } from './library';
 import assert from 'assert';
 import { processLibraries } from './index';
-import { name } from './package.json';
+import { name } from '../package.json';
 
 function usage() {
   console.log(`usage: ${name} --out <dir> --librariesPath <path>  [--debug]
