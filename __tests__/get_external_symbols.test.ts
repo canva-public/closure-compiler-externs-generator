@@ -98,7 +98,7 @@ describe('getExternalSymbols', () => {
   it('gets properties from a type', () => {
     expect.hasAssertions();
     runWithMockFs(
-      `type Foo {
+      `type Foo = {
         prop: string;
         method(): string;
       }`,
@@ -108,6 +108,45 @@ describe('getExternalSymbols', () => {
       ],
     );
   });
+
+  it('gets properties from a mapped type', () => {
+    expect.hasAssertions();
+    runWithMockFs(
+      `type MappedInline = { [K in 'prop1' | 'prop2']: string; };
+
+      type KeysPrefix = 'prop3' | 'prop4';
+      type MappedPrefix = { [K in KeysPrefix]: string; };
+
+      type MappedPostfix = { [K in KeysPostfix]: string; };
+      type KeysPostfix = 'prop5' | 'prop6';
+
+      type KeysIntersection = ('prop7' | 'prop8' | 'never1') & ('never2' | 'prop7' | 'prop8');
+      type MappedIntersection = { [K in KeysIntersection]: string; };
+      
+      type KeysNonString = 'prop9' | 1 | 2 | {} | 'prop10' | true;
+      type MappedNonString = { [K in KeysNonString]: string; };
+      
+      type MappedLiteral = { [K in 'prop11' ]: string; };
+      
+      type MappedModifiers = { -readonly [K in 'prop12']-?: string; };`,
+      [
+        { name: 'prop1', type: SymbolType.PROPERTY },
+        { name: 'prop2', type: SymbolType.PROPERTY },
+        { name: 'prop3', type: SymbolType.PROPERTY },
+        { name: 'prop4', type: SymbolType.PROPERTY },
+        { name: 'prop5', type: SymbolType.PROPERTY },
+        { name: 'prop6', type: SymbolType.PROPERTY },
+        { name: 'prop7', type: SymbolType.PROPERTY },
+        { name: 'prop8', type: SymbolType.PROPERTY },
+        { name: 'prop9', type: SymbolType.PROPERTY },
+        { name: 'prop10', type: SymbolType.PROPERTY },
+        { name: 'prop11', type: SymbolType.PROPERTY },
+        { name: 'prop12', type: SymbolType.PROPERTY },
+      ],
+    );
+  });
+
+  it.todo('gets properties from a mapped type with generic keys');
 
   it('gets properties from a const', () => {
     expect.hasAssertions();
@@ -226,7 +265,7 @@ describe('getExternalSymbols', () => {
     expectedSymbols: { name: string; type: SymbolType }[],
   ) {
     const symbols = getExternalSymbols(
-      ['dummy'],
+      ['/dummy.ts'],
       [],
       () => declarationContent,
       () => void 0,

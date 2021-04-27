@@ -47,6 +47,8 @@ const ignored_typings: RegExp[] = [
 const isNotIgnored = (f: ts.SourceFile) =>
   ignored_typings.every((ignored) => !ignored.test(f.fileName));
 
+const isDefined = <T>(value?: T | null): value is T => value != null;
+
 /**
  * Generates the list of property and symbol names used in vendor libraries that must not be
  * renamed during minification and/or mangling. Names are taken from TypeScript declaration files.
@@ -63,27 +65,47 @@ export function getExternalSymbols(
   readFileSync: typeof defaultReadFileSync = defaultReadFileSync,
   resolveModule: typeof defaultResolveModule = defaultResolveModule,
 ): ExternalSymbol[] {
-  const sourceFiles = Array.from(files, (file) => {
-    const source = readFileSync(file);
-    return ts.createSourceFile(file, source, ts.ScriptTarget.ES2015, true);
+  // TODO: share options with module resolution
+  // TODO: allow for consumer-provided options?
+  // TODO: opt-in?
+  const compilerOptions = ts.getDefaultCompilerOptions();
+  const host = ts.createCompilerHost(compilerOptions);
+  host.readFile = readFileSync;
+
+  const program = ts.createProgram({
+    rootNames: Array.from(files),
+    options: compilerOptions,
+    host,
   });
+  const checker = program.getTypeChecker();
+
+  const sourceFiles = program
+    .getRootFileNames()
+    .map(program.getSourceFile)
+    .filter(isDefined)
+    .filter(isNotIgnored);
 
   const mergedDontFollow = new Set(
     [...files, ...dontFollow].map((p) => path.resolve(p)),
   );
-  return sourceFiles
-    .filter(isNotIgnored)
-    .reduce((symbols: ExternalSymbol[], file) => {
-      return symbols.concat(
-        findSymbolNames(file, mergedDontFollow, readFileSync, resolveModule),
-      );
-    }, []);
+  return sourceFiles.reduce((symbols: ExternalSymbol[], file) => {
+    return symbols.concat(
+      findSymbolNames(
+        checker,
+        file,
+        mergedDontFollow,
+        readFileSync,
+        resolveModule,
+      ),
+    );
+  }, []);
 }
 
 /**
  * Walks the source file's AST and populates the builder with property and declared symbol names.
  */
 function findSymbolNames(
+  checker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
   dontFollow: Set<string>,
   readFileSync: typeof defaultReadFileSync,
@@ -121,9 +143,11 @@ function findSymbolNames(
       case ts.SyntaxKind.ClassDeclaration: // class Foo { }
         visitNamedDeclaration(node as ts.NamedDeclaration);
         break;
-      // Interface and types are ignored as they are removed by TypeScript.
+      case ts.SyntaxKind.TypeAliasDeclaration: // type Foo = ...
+        visitTypeAliasDeclaration(node as ts.TypeAliasDeclaration);
+        break;
+      // Interfaces are ignored as they are removed by TypeScript.
       case ts.SyntaxKind.InterfaceDeclaration: // interface Foo {}
-      case ts.SyntaxKind.TypeAliasDeclaration: // type Foo {}
       default:
         break;
     }
@@ -167,7 +191,13 @@ function findSymbolNames(
         true,
       );
       symbols.push(
-        ...findSymbolNames(source, dontFollow, readFileSync, resolveModule),
+        ...findSymbolNames(
+          checker,
+          source,
+          dontFollow,
+          readFileSync,
+          resolveModule,
+        ),
       );
     }
   }
@@ -201,6 +231,51 @@ function findSymbolNames(
     visitName(node, type);
   }
 
+  function visitTypeAliasDeclaration(node: ts.TypeAliasDeclaration) {
+    const type = node.type;
+    switch (type.kind) {
+      case ts.SyntaxKind.MappedType:
+        visitMappedTypeNode(type as ts.MappedTypeNode);
+        break;
+    }
+  }
+
+  function visitMappedTypeNode(node: ts.MappedTypeNode) {
+    // The constraint in mapped types is the RHS of the `in` keyword. If that's
+    // somehow missing, bail early. We also ignore `keyof` types - the keys will
+    // be picked up by other node vistors.
+    const constraint = node.typeParameter.constraint;
+    if (
+      constraint == null ||
+      (ts.isTypeOperatorNode(constraint) &&
+        constraint.operator === ts.SyntaxKind.KeyOfKeyword)
+    ) {
+      return;
+    }
+
+    const constraintType = checker.getTypeAtLocation(constraint);
+
+    // Mapped types can just be a single literal, catch that edge.
+    // Omitting numeric literals as they're meaningless in the context of externs.
+    if (constraintType.isStringLiteral()) {
+      visitStringLiteralType(constraintType, constraint);
+      return;
+    }
+
+    // Anything other than a literal should be a union, enforce
+    if (!constraintType.isUnion()) {
+      /* istanbul ignore next */
+      return;
+    }
+
+    for (const memberType of constraintType.types) {
+      if (!memberType.isStringLiteral()) {
+        continue;
+      }
+      visitStringLiteralType(memberType, constraint);
+    }
+  }
+
   function visitName(node: ts.NamedDeclaration, type: SymbolType) {
     const name = node.name;
     if (name && ts.isIdentifier(name)) {
@@ -211,6 +286,15 @@ function findSymbolNames(
         sourceFile,
       });
     }
+  }
+
+  function visitStringLiteralType(type: ts.StringLiteralType, node: ts.Node) {
+    symbols.push({
+      type: SymbolType.PROPERTY,
+      name: type.value,
+      node,
+      sourceFile,
+    });
   }
 
   /**
