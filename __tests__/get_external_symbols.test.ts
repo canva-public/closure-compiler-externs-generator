@@ -266,9 +266,12 @@ describe('getExternalSymbols', () => {
     expect.hasAssertions();
 
     runWithMockFs(
-      `type MappedGeneric<T extends string, U extends string> = { [K in T | U]: string; };
-      type ComputedMapping = MappedGeneric<'prop1' | 'prop2', 'prop3' | 'prop4'>;`,
-      [],
+      `type MappedGeneric<T extends string, U extends string> = { [K in T | 'prop1' | U | 'prop2']: string; };
+      type ComputedMapping = MappedGeneric<'prop3' | 'prop4', 'prop5' | 'prop6'>;`,
+      [
+        { name: 'prop1', type: SymbolType.PROPERTY },
+        { name: 'prop2', type: SymbolType.PROPERTY },
+      ],
     );
 
     expect(mockedLogging.warn).toHaveBeenCalledTimes(1);
