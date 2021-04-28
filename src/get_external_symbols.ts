@@ -3,6 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
+import { warn } from './logging';
 
 const defaultReadFileSync = (path: string) => fs.readFileSync(path, 'utf8');
 const getDefaultResolveModule = (compilerOptions: ts.CompilerOptions) => (
@@ -254,25 +255,34 @@ function findSymbolNames(
       return;
     }
 
+    // Resolve the constraint to an array of its union members
     const constraintType = checker.getTypeAtLocation(constraint);
+    const constraintMemberTypes = constraintType.isUnion()
+      ? constraintType.types
+      : [constraintType];
 
-    // Mapped types can just be a single literal, catch that edge.
-    // Omitting numeric literals as they're meaningless in the context of externs.
-    if (constraintType.isStringLiteral()) {
-      visitStringLiteralType(constraintType, constraint);
-      return;
-    }
+    for (const memberType of constraintMemberTypes) {
+      // If we encounter a type parameter, we can't reliably resolve every possible
+      // parameter without checking every usage of it.
+      // Cast is required due to over-narrowing by TS.
+      const typeParameters = memberType.isTypeParameter()
+        ? [memberType]
+        : (memberType as ts.Type).aliasTypeArguments?.filter((type) =>
+            type.isTypeParameter(),
+          );
+      if (typeParameters != null && typeParameters.length > 0) {
+        warnUnresolvedTypeParameters(
+          node.parent as ts.TypeAliasDeclaration,
+          typeParameters,
+        );
+        continue;
+      }
 
-    // Anything other than a literal should be a union, enforce
-    if (!constraintType.isUnion()) {
-      /* istanbul ignore next */
-      return;
-    }
-
-    for (const memberType of constraintType.types) {
+      // Only tracking string literals, other possible values FOOO
       if (!memberType.isStringLiteral()) {
         continue;
       }
+
       visitStringLiteralType(memberType, constraint);
     }
   }
@@ -296,6 +306,24 @@ function findSymbolNames(
       node,
       sourceFile,
     });
+  }
+
+  function warnUnresolvedTypeParameters(
+    typeAlias: ts.TypeAliasDeclaration,
+    typeParameters: ts.Type[],
+  ) {
+    const sourceFile = typeAlias.getSourceFile();
+    const location = sourceFile.getLineAndCharacterOfPosition(
+      typeAlias.getStart(),
+    );
+    const formattedLocation = `${sourceFile.fileName}:${location.line}:${location.character}`;
+    const formattedTypeParameters = typeParameters
+      .map((type) => checker.typeToString(type))
+      .join(', ');
+
+    warn(
+      `Type alias ${typeAlias.name.getText()} at ${formattedLocation} contains unresolved type paramter(s) ${formattedTypeParameters}.`,
+    );
   }
 
   /**
