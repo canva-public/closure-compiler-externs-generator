@@ -5,14 +5,14 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 const defaultReadFileSync = (path: string) => fs.readFileSync(path, 'utf8');
-const defaultResolveModule = (
+const getDefaultResolveModule = (compilerOptions: ts.CompilerOptions) => (
   moduleName: string,
   containingFile: string,
 ): string | undefined => {
   const result = ts.resolveModuleName(
     moduleName,
     containingFile,
-    ts.getDefaultCompilerOptions(),
+    compilerOptions,
     ts.sys,
   );
   return result.resolvedModule && result.resolvedModule.resolvedFileName;
@@ -63,12 +63,13 @@ export function getExternalSymbols(
   files: Iterable<string>,
   dontFollow: Iterable<string> = [],
   readFileSync: typeof defaultReadFileSync = defaultReadFileSync,
-  resolveModule: typeof defaultResolveModule = defaultResolveModule,
+  resolveModule?: ReturnType<typeof getDefaultResolveModule>,
 ): ExternalSymbol[] {
-  // TODO: share options with module resolution
-  // TODO: allow for consumer-provided options?
-  // TODO: opt-in?
   const compilerOptions = ts.getDefaultCompilerOptions();
+
+  const realResolveModule =
+    resolveModule ?? getDefaultResolveModule(compilerOptions);
+
   const host = ts.createCompilerHost(compilerOptions);
   host.readFile = readFileSync;
 
@@ -95,7 +96,7 @@ export function getExternalSymbols(
         file,
         mergedDontFollow,
         readFileSync,
-        resolveModule,
+        realResolveModule,
       ),
     );
   }, []);
@@ -109,7 +110,7 @@ function findSymbolNames(
   sourceFile: ts.SourceFile,
   dontFollow: Set<string>,
   readFileSync: typeof defaultReadFileSync,
-  resolveModule: typeof defaultResolveModule,
+  resolveModule: ReturnType<typeof getDefaultResolveModule>,
 ): ExternalSymbol[] {
   const symbols: ExternalSymbol[] = [];
   visitNode(sourceFile);
