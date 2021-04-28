@@ -16,6 +16,7 @@ import walkSync from 'walk-sync';
 import type { ExternalSymbol } from './get_external_symbols';
 import { getExternalSymbols } from './get_external_symbols';
 import { Library } from './library';
+export { applyDefaults, Library } from './library';
 
 const cwd = process.cwd();
 
