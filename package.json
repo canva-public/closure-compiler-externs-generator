@@ -12,6 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "@sindresorhus/slugify": "^1.1.0",
+    "@types/debug": "^4.1.5",
     "@types/jest": "^26.0.22",
     "@types/react": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
@@ -42,6 +43,7 @@
     "*.{js,ts,css,md}": "prettier --write"
   },
   "dependencies": {
+    "debug": "^4.3.1",
     "typescript": "^4.2.4",
     "walk-sync": "^2.2.0"
   }
