@@ -122,12 +122,12 @@ describe('getExternalSymbols', () => {
 
       type KeysIntersection = ('prop7' | 'prop8' | 'never1') & ('never2' | 'prop7' | 'prop8');
       type MappedIntersection = { [K in KeysIntersection]: string; };
-      
+
       type KeysNonString = 'prop9' | 1 | 2 | {} | 'prop10' | true;
       type MappedNonString = { [K in KeysNonString]: string; };
-      
+
       type MappedLiteral = { [K in 'prop11' ]: string; };
-      
+
       type MappedModifiers = { -readonly [K in 'prop12']-?: string; };`,
       [
         { name: 'prop1', type: SymbolType.PROPERTY },
@@ -145,8 +145,6 @@ describe('getExternalSymbols', () => {
       ],
     );
   });
-
-  it.todo('gets properties from a mapped type with generic keys');
 
   it('gets properties from a const', () => {
     expect.hasAssertions();
