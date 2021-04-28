@@ -2,6 +2,10 @@
 
 import type { ExternalSymbol } from '../src/get_external_symbols';
 import { getExternalSymbols, SymbolType } from '../src/get_external_symbols';
+import * as logging from '../src/logging';
+
+jest.mock('../src/logging');
+const mockedLogging = logging as jest.Mocked<typeof logging>;
 
 describe('getExternalSymbols', () => {
   it('follows imports', () => {
@@ -255,6 +259,21 @@ describe('getExternalSymbols', () => {
         { name: 'Var', type: SymbolType.PROPERTY },
         { name: 'Let', type: SymbolType.PROPERTY },
       ],
+    );
+  });
+
+  it('warns when encountering unresolved type parameters', () => {
+    expect.hasAssertions();
+
+    runWithMockFs(
+      `type MappedGeneric<T extends string, U extends string> = { [K in T | U]: string; };
+      type ComputedMapping = MappedGeneric<'prop1' | 'prop2', 'prop3' | 'prop4'>;`,
+      [],
+    );
+
+    expect(mockedLogging.warn).toHaveBeenCalledTimes(1);
+    expect(mockedLogging.warn).toHaveBeenCalledWith(
+      'Type alias MappedGeneric at /dummy.ts:0:0 contains unresolved type paramter(s) T, U.',
     );
   });
 

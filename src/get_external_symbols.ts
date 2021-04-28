@@ -261,6 +261,7 @@ function findSymbolNames(
       ? constraintType.types
       : [constraintType];
 
+    const unresolvedTypes: ts.Type[] = [];
     for (const memberType of constraintMemberTypes) {
       // If we encounter a type parameter, we can't reliably resolve every possible
       // parameter without checking every usage of it.
@@ -271,10 +272,7 @@ function findSymbolNames(
             type.isTypeParameter(),
           );
       if (typeParameters != null && typeParameters.length > 0) {
-        warnUnresolvedTypeParameters(
-          node.parent as ts.TypeAliasDeclaration,
-          typeParameters,
-        );
+        unresolvedTypes.push(...typeParameters);
         continue;
       }
 
@@ -284,6 +282,13 @@ function findSymbolNames(
       }
 
       visitStringLiteralType(memberType, constraint);
+    }
+
+    if (unresolvedTypes.length > 0) {
+      warnUnresolvedTypeParameters(
+        node.parent as ts.TypeAliasDeclaration,
+        unresolvedTypes,
+      );
     }
   }
 
