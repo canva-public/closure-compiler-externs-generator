@@ -276,7 +276,8 @@ function findSymbolNames(
         continue;
       }
 
-      // Only tracking string literals, other possible values FOOO
+      // Only tracking string literals, other possible values will either be ignored
+      // by CC (numeric literals), or caught by other visitors.
       if (!memberType.isStringLiteral()) {
         continue;
       }
