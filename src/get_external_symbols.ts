@@ -245,7 +245,7 @@ function findSymbolNames(
   function visitMappedTypeNode(node: ts.MappedTypeNode) {
     // The constraint in mapped types is the RHS of the `in` keyword. If that's
     // somehow missing, bail early. We also ignore `keyof` types - the keys will
-    // be picked up by other node vistors.
+    // be picked up by other node visitors.
     const constraint = node.typeParameter.constraint;
     if (
       constraint == null ||
@@ -327,7 +327,7 @@ function findSymbolNames(
       .join(', ');
 
     warn(
-      `Type alias ${typeAlias.name.getText()} at ${formattedLocation} contains unresolved type paramter(s) ${formattedTypeParameters}.`,
+      `Type alias ${typeAlias.name.getText()} at ${formattedLocation} contains unresolved type parameter(s) ${formattedTypeParameters}.`,
     );
   }
 
