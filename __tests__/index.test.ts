@@ -1,7 +1,6 @@
 import { applyDefaults, processLibraries, FS } from '../src/index';
 import { Volume, createFsFromVolume } from 'memfs';
 import { libraries } from './fixtures/libraries';
-import { ExternImportError } from '../src/library';
 
 function createVolumeAndFs() {
   const volume = new Volume();
@@ -39,25 +38,6 @@ describe('externs-generator', () => {
         fs,
       );
       expect(volume.toJSON()).toMatchSnapshot();
-    });
-  });
-  describe('libraries definition', () => {
-    it('throws on missing extern imports', () => {
-      expect.hasAssertions();
-      const { fs } = createVolumeAndFs();
-      expect(() =>
-        processLibraries(
-          '/',
-          [
-            {
-              moduleName: 'x',
-              externImports: ['/path/to/nonexistent/file'],
-            },
-          ].map(applyDefaults),
-          false,
-          fs,
-        ),
-      ).toThrow(ExternImportError);
     });
   });
 });

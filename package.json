@@ -1,6 +1,6 @@
 {
   "name": "@canva/closure-compiler-externs-generator",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Generates externs for closure compiler from TypeScript declarations",
   "files": [
     "dist"

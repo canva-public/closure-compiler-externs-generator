@@ -1,4 +1,3 @@
-import { existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
 
 export type Library = {
@@ -43,11 +42,6 @@ export function applyDefaults({
   declarationGlobs,
   ...library
 }: Partial<Library> & { moduleName: string }): Library {
-  for (const externImport of library.externImports || []) {
-    if (!existsSync(externImport)) {
-      throw new ExternImportError(externImport, library.moduleName);
-    }
-  }
   return {
     identifier: moduleNameToIdentifier(library.moduleName),
     externImports: [],
