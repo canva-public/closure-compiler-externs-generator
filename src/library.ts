@@ -13,14 +13,6 @@ export type Library = {
   declarationGlobs: readonly string[];
 };
 
-export class ExternImportError extends Error {
-  constructor(externImport: string, libraryModuleName: string) {
-    super(
-      `extern import ${externImport} for library ${libraryModuleName} does not exist.`,
-    );
-  }
-}
-
 /**
  * Generates a unique and file safe name from a module name.
  * from https://github.com/Microsoft/dts-gen/commit/cda239f132146fe8965959d60f6bd40d115ba0aa
