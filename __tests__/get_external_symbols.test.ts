@@ -276,7 +276,7 @@ describe('getExternalSymbols', () => {
 
     expect(mockedLogging.warn).toHaveBeenCalledTimes(1);
     expect(mockedLogging.warn).toHaveBeenCalledWith(
-      'Type alias MappedGeneric at /dummy.ts:0:0 contains unresolved type paramter(s) T, U.',
+      'Type alias MappedGeneric at /dummy.ts:0:0 contains unresolved type parameter(s) T, U.',
     );
   });
 
