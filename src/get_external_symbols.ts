@@ -255,8 +255,19 @@ function findSymbolNames(
       return;
     }
 
+    // Fetch the underlying type of the constraint. There's a rare case where TS
+    // cannot resolve the symbol for the node, and throws - typically due to a
+    // RHS that is particularly complicated, or imported from an unchecked file.
+    // It's safe to ignore these errors.
+    let constraintType: ts.Type;
+    try {
+      constraintType = checker.getTypeAtLocation(constraint);
+    } catch {
+      warnUnresolvedConstraintType(constraint);
+      return;
+    }
+
     // Resolve the constraint to an array of its union members
-    const constraintType = checker.getTypeAtLocation(constraint);
     const constraintMemberTypes = constraintType.isUnion()
       ? constraintType.types
       : [constraintType];
@@ -314,15 +325,18 @@ function findSymbolNames(
     });
   }
 
+  function warnUnresolvedConstraintType(node: ts.TypeNode) {
+    const formattedLocation = formatLocationForNode(node);
+    warn(
+      `Constraint ${node.getText()} at ${formattedLocation} could not be resolved, and was ignored.`,
+    );
+  }
+
   function warnUnresolvedTypeParameters(
     typeAlias: ts.TypeAliasDeclaration,
     typeParameters: ts.Type[],
   ) {
-    const sourceFile = typeAlias.getSourceFile();
-    const location = sourceFile.getLineAndCharacterOfPosition(
-      typeAlias.getStart(),
-    );
-    const formattedLocation = `${sourceFile.fileName}:${location.line}:${location.character}`;
+    const formattedLocation = formatLocationForNode(typeAlias);
     const formattedTypeParameters = typeParameters
       .map((type) => checker.typeToString(type))
       .join(', ');
@@ -330,6 +344,12 @@ function findSymbolNames(
     warn(
       `Type alias ${typeAlias.name.getText()} at ${formattedLocation} contains unresolved type parameter(s) ${formattedTypeParameters}.`,
     );
+  }
+
+  function formatLocationForNode(node: ts.Node) {
+    const sourceFile = node.getSourceFile();
+    const location = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+    return `${sourceFile.fileName}:${location.line}:${location.character}`;
   }
 
   /**
