@@ -61,12 +61,13 @@ const isDefined = <T>(value?: T | null): value is T => value != null;
  * @param resolveModule
  */
 export function getExternalSymbols(
+  program: ts.Program,
   files: Iterable<string>,
   dontFollow: Iterable<string> = [],
   readFileSync: typeof defaultReadFileSync = defaultReadFileSync,
   resolveModule?: ReturnType<typeof getDefaultResolveModule>,
 ): ExternalSymbol[] {
-  const compilerOptions = ts.getDefaultCompilerOptions();
+  const compilerOptions = program.getCompilerOptions();
 
   const realResolveModule =
     resolveModule ?? getDefaultResolveModule(compilerOptions);
@@ -74,15 +75,9 @@ export function getExternalSymbols(
   const host = ts.createCompilerHost(compilerOptions);
   host.readFile = readFileSync;
 
-  const program = ts.createProgram({
-    rootNames: Array.from(files),
-    options: compilerOptions,
-    host,
-  });
   const checker = program.getTypeChecker();
 
-  const sourceFiles = program
-    .getRootFileNames()
+  const sourceFiles = Array.from(files)
     .map(program.getSourceFile)
     .filter(isDefined)
     .filter(isNotIgnored);
@@ -183,6 +178,7 @@ function findSymbolNames(
   }
 
   function loadReferencedFile(file: string) {
+    // TODO: Look into if this logic can be removed and left to the TS checker's resolution process
     file = path.resolve(file);
     if (!dontFollow.has(file)) {
       dontFollow.add(file);

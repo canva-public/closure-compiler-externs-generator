@@ -1,5 +1,6 @@
 // Copyright 2021 Canva Inc. All Rights Reserved.
 
+import * as ts from 'typescript';
 import type { ExternalSymbol } from '../src/get_external_symbols';
 import { getExternalSymbols, SymbolType } from '../src/get_external_symbols';
 import * as logging from '../src/logging';
@@ -17,8 +18,10 @@ describe('getExternalSymbols', () => {
 
     const readFileSync = (path: string) => files[path];
     const resolveModule = jest.fn().mockReturnValue('/src/foo.d.ts');
+    const program = getProgramForFiles(files, readFileSync);
 
     const symbols = getExternalSymbols(
+      program,
       ['/src/entry.d.ts'],
       [],
       readFileSync,
@@ -38,8 +41,10 @@ describe('getExternalSymbols', () => {
 
     const readFileSync = (path: string) => files[path];
     const resolveModule = jest.fn().mockReturnValue('/src/foo.d.ts');
+    const program = getProgramForFiles(files, readFileSync);
 
     const symbols = getExternalSymbols(
+      program,
       ['/src/entry.d.ts'],
       [],
       readFileSync,
@@ -57,8 +62,10 @@ describe('getExternalSymbols', () => {
     };
 
     const readFileSync = (path: string) => files[path];
+    const program = getProgramForFiles(files, readFileSync);
 
     const symbols = getExternalSymbols(
+      program,
       ['/src/entry.d.ts'],
       [],
       readFileSync,
@@ -75,8 +82,10 @@ describe('getExternalSymbols', () => {
     };
 
     const readFileSync = (path: string) => files[path];
+    const program = getProgramForFiles(files, readFileSync);
 
     const symbols = getExternalSymbols(
+      program,
       ['/src/entry.d.ts'],
       ['/src/sub/ref.entry.d.ts'],
       readFileSync,
@@ -280,14 +289,39 @@ describe('getExternalSymbols', () => {
     );
   });
 
+  function getProgramForFiles(
+    files: Record<string, string>,
+    // TODO: Might be able to absorb this into the fn if we can remove it from gES
+    readFileSync: (path: string) => string,
+  ): ts.Program {
+    const options = ts.getDefaultCompilerOptions();
+    const host = ts.createCompilerHost(options);
+    host.readFile = readFileSync;
+
+    return ts.createProgram({
+      rootNames: Object.keys(files),
+      options,
+      host,
+    });
+  }
+
   function runWithMockFs(
     declarationContent: string,
     expectedSymbols: { name: string; type: SymbolType }[],
   ) {
+    const fileName = '/dummy.ts';
+    const readFileSync = () => declarationContent;
+
+    const program = getProgramForFiles(
+      { [fileName]: declarationContent },
+      readFileSync,
+    );
+
     const symbols = getExternalSymbols(
+      program,
       ['/dummy.ts'],
       [],
-      () => declarationContent,
+      readFileSync,
       () => void 0,
     );
     checkSymbols(symbols, expectedSymbols);
