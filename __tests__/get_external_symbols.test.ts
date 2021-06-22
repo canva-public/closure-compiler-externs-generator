@@ -318,7 +318,7 @@ describe('getExternalSymbols', () => {
 
     const symbols = getExternalSymbols(
       program,
-      ['/dummy.ts'],
+      [fileName],
       [],
       readFileSync,
       () => void 0,
