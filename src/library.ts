@@ -1,4 +1,3 @@
-import { existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
 
 export type Library = {
@@ -13,14 +12,6 @@ export type Library = {
   // node_modules/@types/${library.moduleName}, but additional can be specified.
   declarationGlobs: readonly string[];
 };
-
-export class ExternImportError extends Error {
-  constructor(externImport: string, libraryModuleName: string) {
-    super(
-      `extern import ${externImport} for library ${libraryModuleName} does not exist.`,
-    );
-  }
-}
 
 /**
  * Generates a unique and file safe name from a module name.
@@ -43,11 +34,6 @@ export function applyDefaults({
   declarationGlobs,
   ...library
 }: Partial<Library> & { moduleName: string }): Library {
-  for (const externImport of library.externImports || []) {
-    if (!existsSync(externImport)) {
-      throw new ExternImportError(externImport, library.moduleName);
-    }
-  }
   return {
     identifier: moduleNameToIdentifier(library.moduleName),
     externImports: [],
