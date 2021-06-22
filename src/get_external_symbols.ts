@@ -88,6 +88,7 @@ export function getExternalSymbols(
   return sourceFiles.reduce((symbols: ExternalSymbol[], file) => {
     return symbols.concat(
       findSymbolNames(
+        program,
         checker,
         file,
         mergedDontFollow,
@@ -102,6 +103,7 @@ export function getExternalSymbols(
  * Walks the source file's AST and populates the builder with property and declared symbol names.
  */
 function findSymbolNames(
+  program: ts.Program,
   checker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
   dontFollow: Set<string>,
@@ -178,18 +180,23 @@ function findSymbolNames(
   }
 
   function loadReferencedFile(file: string) {
-    // TODO: Look into if this logic can be removed and left to the TS checker's resolution process
     file = path.resolve(file);
     if (!dontFollow.has(file)) {
       dontFollow.add(file);
-      const source = ts.createSourceFile(
-        file,
-        readFileSync(file),
-        ts.ScriptTarget.ES2015,
-        true,
-      );
+
+      // Try to fetch the source file directly from the main program instance, falling back to creating an unchecked new one
+      const source =
+        program.getSourceFile(file) ??
+        ts.createSourceFile(
+          file,
+          readFileSync(file),
+          ts.ScriptTarget.ES2015,
+          true,
+        );
+
       symbols.push(
         ...findSymbolNames(
+          program,
           checker,
           source,
           dontFollow,
