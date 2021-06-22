@@ -291,7 +291,6 @@ describe('getExternalSymbols', () => {
 
   function getProgramForFiles(
     files: Record<string, string>,
-    // TODO: Might be able to absorb this into the fn if we can remove it from gES
     readFileSync: (path: string) => string,
   ): ts.Program {
     const options = ts.getDefaultCompilerOptions();
