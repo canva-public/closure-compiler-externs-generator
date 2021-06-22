@@ -72,11 +72,6 @@ export function getExternalSymbols(
   const realResolveModule =
     resolveModule ?? getDefaultResolveModule(compilerOptions);
 
-  const host = ts.createCompilerHost(compilerOptions);
-  host.readFile = readFileSync;
-
-  const checker = program.getTypeChecker();
-
   const sourceFiles = Array.from(files)
     .map(program.getSourceFile)
     .filter(isDefined)
@@ -89,7 +84,6 @@ export function getExternalSymbols(
     return symbols.concat(
       findSymbolNames(
         program,
-        checker,
         file,
         mergedDontFollow,
         readFileSync,
@@ -104,7 +98,6 @@ export function getExternalSymbols(
  */
 function findSymbolNames(
   program: ts.Program,
-  checker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
   dontFollow: Set<string>,
   readFileSync: typeof defaultReadFileSync,
@@ -197,7 +190,6 @@ function findSymbolNames(
       symbols.push(
         ...findSymbolNames(
           program,
-          checker,
           source,
           dontFollow,
           readFileSync,
@@ -258,10 +250,13 @@ function findSymbolNames(
       return;
     }
 
+    // We'll need the type checker past this point, grab a reference to it. This
+    // will only incur the penalty of instantiating the checker one per Program.
+    const checker = program.getTypeChecker();
+
     // Fetch the underlying type of the constraint. There's a rare case where TS
     // cannot resolve the symbol for the node, and throws - typically due to a
-    // RHS that is particularly complicated, or imported from an unchecked file.
-    // It's safe to ignore these errors.
+    // RHS that is imported from an unchecked file. It's safe to ignore these errors.
     let constraintType: ts.Type;
     try {
       constraintType = checker.getTypeAtLocation(constraint);
@@ -339,6 +334,7 @@ function findSymbolNames(
     typeAlias: ts.TypeAliasDeclaration,
     typeParameters: ts.Type[],
   ) {
+    const checker = program.getTypeChecker();
     const formattedLocation = formatLocationForNode(typeAlias);
     const formattedTypeParameters = typeParameters
       .map((type) => checker.typeToString(type))
