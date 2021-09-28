@@ -11,7 +11,7 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import type * as ts from 'typescript';
+import * as ts from 'typescript';
 import walkSync from 'walk-sync';
 import type { ExternalSymbol } from './get_external_symbols';
 import { getExternalSymbols } from './get_external_symbols';
@@ -167,8 +167,14 @@ export function processLibraries(
     paths.forEach((p) => allPaths.add(p));
   }
 
+  const options = ts.getDefaultCompilerOptions();
+  const program = ts.createProgram({
+    rootNames: Array.from(allPaths),
+    options,
+  });
+
   for (const [safeModuleName, declarationPaths] of libraryToDeclarationPaths) {
-    const symbols = getExternalSymbols(declarationPaths, allPaths);
+    const symbols = getExternalSymbols(program, declarationPaths, allPaths);
     if (symbols.length) {
       writeSymbols(
         path.join(outPath, `${safeModuleName}.js`),
