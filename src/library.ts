@@ -50,7 +50,7 @@ function attemptResolve(moduleName: string): string | null {
   let p: string;
   try {
     p = require.resolve(join(moduleName, 'package.json'));
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === 'MODULE_NOT_FOUND') {
       return null;
     }
