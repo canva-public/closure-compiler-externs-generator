@@ -38,15 +38,15 @@ To include symbol source information in the output add the `--debug` flag to the
 // CJS
 const CCEG = require('@canva/closure-compiler-externs-generator');
 const fs = require('node:fs');
-const cwd = __dirname;
+const resolveFrom = __dirname;
 // NodeJS >= v12 ESM
 import CCEG from '@canva/closure-compiler-externs-generator';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const cwd = dirname(fileURLToPath(import.meta.url));;
+const resolveFrom = dirname(fileURLToPath(import.meta.url));;
 
-const applyDefaults = CCEG.createApplyDefaults(cwd);
+const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
 const libraries = [{ ... }, { ... }].map(applyDefaults);
 
 CCEG.processLibraries(
@@ -55,7 +55,6 @@ CCEG.processLibraries(
   // `true` to include symbol source information
   false,
   fs,
-  cwd,
 );
 ```
 
