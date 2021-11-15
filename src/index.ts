@@ -30,14 +30,12 @@ function positionDescription(
     sourceFile: ts.SourceFile;
     node: ts.Node;
   },
-  cwd: string,
+  outPath: string,
 ) {
   const { line, character } = sourceFile.getLineAndCharacterOfPosition(
     node.getStart(sourceFile),
   );
-  const fileName = sourceFile.fileName.startsWith(cwd)
-    ? sourceFile.fileName.substr(cwd.length + 1)
-    : sourceFile.fileName;
+  const fileName = path.relative(outPath, sourceFile.fileName);
   return `${fileName} (${line + 1}:${character + 1})`;
 }
 
@@ -74,7 +72,7 @@ function writeSymbols(
   symbols: ExternalSymbol[],
   debug: boolean,
   fileSystem: FS,
-  cwd: string,
+  outPath: string,
 ) {
   const declarations: string[] = [];
   const properties: string[] = [];
@@ -94,7 +92,7 @@ function writeSymbols(
       case 'DECLARATION':
         if (debug) {
           declarations.push(
-            `var ${symbol.name}; // ${positionDescription(symbol, cwd)}`,
+            `var ${symbol.name}; // ${positionDescription(symbol, outPath)}`,
           );
         } else if (!seenDeclarations.has(symbol.name)) {
           seenDeclarations.add(symbol.name);
@@ -106,7 +104,7 @@ function writeSymbols(
           properties.push(
             `__${variableName}.${symbol.name}; // ${positionDescription(
               symbol,
-              cwd,
+              outPath,
             )}`,
           );
         } else if (!seenProperties.has(symbol.name)) {
@@ -158,7 +156,6 @@ export function processLibraries(
   libraries: readonly Library[],
   debug: boolean,
   fileSystem: FS,
-  cwd: string = process.cwd(),
 ): void {
   const libraryToDeclarationPaths = getDeclarationPaths(libraries);
 
@@ -180,7 +177,7 @@ export function processLibraries(
         symbols,
         debug,
         fileSystem,
-        path.resolve(cwd),
+        outPath,
       );
     }
   }

@@ -4,7 +4,7 @@ import {
   FS,
   Library,
 } from '../src/index';
-import { Volume, createFsFromVolume } from 'memfs';
+import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
 import { libraries } from './fixtures/libraries';
 import * as path from 'path';
 
@@ -12,12 +12,26 @@ const fixturesDir = path.resolve(__dirname, 'fixtures');
 
 function createVolumeAndFs() {
   const volume = new Volume();
-  const fs = createFsFromVolume(volume) as FS;
+  const fs = (createFsFromVolume(volume) as unknown) as FS;
 
   return {
     fs,
     volume,
   };
+}
+
+function normaliseVolumeSnapshot(directoryJSON: DirectoryJSON): DirectoryJSON {
+  const newDirectoryJSON: DirectoryJSON = {};
+
+  for (let filePath in directoryJSON) {
+    const content = directoryJSON[filePath];
+    if (filePath.startsWith(fixturesDir)) {
+      filePath = '/' + path.relative(fixturesDir, filePath);
+    }
+    newDirectoryJSON[filePath] = content;
+  }
+
+  return newDirectoryJSON;
 }
 
 function snapshotLibraries(
@@ -26,13 +40,12 @@ function snapshotLibraries(
   const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
   const { volume, fs } = createVolumeAndFs();
   processLibraries(
-    '/',
+    path.join(fixturesDir, 'out'),
     libraries.map(tailoredApplyDefaults),
     false,
     fs,
-    fixturesDir,
   );
-  expect(volume.toJSON()).toMatchSnapshot();
+  expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
 }
 
 describe('externs-generator', () => {
@@ -42,8 +55,8 @@ describe('externs-generator', () => {
       (debug) => {
         expect.hasAssertions();
         const { volume, fs } = createVolumeAndFs();
-        processLibraries('/', libraries, debug, fs, fixturesDir);
-        expect(volume.toJSON()).toMatchSnapshot();
+        processLibraries(path.join(fixturesDir, 'out'), libraries, debug, fs);
+        expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
       },
     );
 

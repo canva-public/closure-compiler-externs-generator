@@ -2,26 +2,26 @@
 
 exports[`externs-generator generation for scoped modules 1`] = `
 Object {
-  "/cjs_named_exports.js": "// @formatter:off
+  "/out/cjs_named_exports.js": "// @formatter:off
 const __cjs_named_exports = {};
 __cjs_named_exports.bar;
 __cjs_named_exports.foo;
 ",
-  "/main_implicit.js": "// @formatter:off
+  "/out/main_implicit.js": "// @formatter:off
 var foo;
 const __main_implicit = {};
 ",
-  "/scoped__exports_sugar_esm.js": "// @formatter:off
+  "/out/scoped__exports_sugar_esm.js": "// @formatter:off
 const __scoped__exports_sugar_esm = {};
 __scoped__exports_sugar_esm.barfoo;
 __scoped__exports_sugar_esm.foobar;
 ",
-  "/untyped_cjs.js": "// @formatter:off
+  "/out/untyped_cjs.js": "// @formatter:off
 var UntypedCjs;
 const __untyped_cjs = {};
 __untyped_cjs.useFoo;
 ",
-  "/untyped_cjs_and_esm.js": "// @formatter:off
+  "/out/untyped_cjs_and_esm.js": "// @formatter:off
 var UntypedCjsAndEsm;
 const __untyped_cjs_and_esm = {};
 __untyped_cjs_and_esm.useFoo;
@@ -31,21 +31,21 @@ __untyped_cjs_and_esm.useFoo;
 
 exports[`externs-generator generation for various single-export modules 1`] = `
 Object {
-  "/cjs_named_exports.js": "// @formatter:off
+  "/out/cjs_named_exports.js": "// @formatter:off
 const __cjs_named_exports = {};
 __cjs_named_exports.bar;
 __cjs_named_exports.foo;
 ",
-  "/main_implicit.js": "// @formatter:off
+  "/out/main_implicit.js": "// @formatter:off
 var foo;
 const __main_implicit = {};
 ",
-  "/untyped_cjs.js": "// @formatter:off
+  "/out/untyped_cjs.js": "// @formatter:off
 var UntypedCjs;
 const __untyped_cjs = {};
 __untyped_cjs.useFoo;
 ",
-  "/untyped_cjs_and_esm.js": "// @formatter:off
+  "/out/untyped_cjs_and_esm.js": "// @formatter:off
 var UntypedCjsAndEsm;
 const __untyped_cjs_and_esm = {};
 __untyped_cjs_and_esm.useFoo;
@@ -55,11 +55,11 @@ __untyped_cjs_and_esm.useFoo;
 
 exports[`externs-generator generation produces externs for a given set of modules with debug = false 1`] = `
 Object {
-  "/main_implicit.js": "// @formatter:off
+  "/out/main_implicit.js": "// @formatter:off
 var foo;
 const __main_implicit = {};
 ",
-  "/untyped_cjs.js": "// @formatter:off
+  "/out/untyped_cjs.js": "// @formatter:off
 var UntypedCjs;
 const __untyped_cjs = {};
 __untyped_cjs.useFoo;
@@ -69,14 +69,14 @@ __untyped_cjs.useFoo;
 
 exports[`externs-generator generation produces externs for a given set of modules with debug = true 1`] = `
 Object {
-  "/main_implicit.js": "// @formatter:off
-var foo; // node_modules/main-implicit/index.d.ts (2:18)
+  "/out/main_implicit.js": "// @formatter:off
+var foo; // ../node_modules/main-implicit/index.d.ts (2:18)
 const __main_implicit = {};
 ",
-  "/untyped_cjs.js": "// @formatter:off
-var UntypedCjs; // node_modules/@types/untyped-cjs/index.d.ts (3:19)
+  "/out/untyped_cjs.js": "// @formatter:off
+var UntypedCjs; // ../node_modules/@types/untyped-cjs/index.d.ts (3:19)
 const __untyped_cjs = {};
-__untyped_cjs.useFoo; // node_modules/@types/untyped-cjs/index.d.ts (4:14)
+__untyped_cjs.useFoo; // ../node_modules/@types/untyped-cjs/index.d.ts (4:14)
 ",
 }
 `;
