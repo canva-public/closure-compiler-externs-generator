@@ -35,6 +35,7 @@ To include symbol source information in the output add the `--debug` flag to the
 ### API
 
 If in a CommonJS context:
+
 ```js
 const CCEG = require('@canva/closure-compiler-externs-generator');
 const fs = require('node:fs');
@@ -42,6 +43,7 @@ const resolveFrom = __dirname;
 ```
 
 If in a ES module context (NodeJS v12 and up):
+
 ```js
 import CCEG from '@canva/closure-compiler-externs-generator';
 import fs from 'node:fs';
@@ -51,6 +53,7 @@ const resolveFrom = dirname(fileURLToPath(import.meta.url));
 ```
 
 Then use as follows:
+
 ```js
 const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
 const libraries = [{ ... }, { ... }].map(applyDefaults);
