@@ -1,4 +1,5 @@
 import { resolve, dirname, join } from 'path';
+import { deprecate } from 'util';
 
 export type Library = {
   // The name used to import the module.
@@ -30,26 +31,32 @@ function moduleNameToIdentifier(s: string): string {
   return ret;
 }
 
-export function applyDefaults({
-  declarationGlobs,
-  ...library
-}: Partial<Library> & { moduleName: string }): Library {
-  return {
+export function createApplyDefaults(from: string) {
+  return ({
+    declarationGlobs,
+    ...library
+  }: Partial<Library> & { moduleName: string }): Library => ({
     identifier: moduleNameToIdentifier(library.moduleName),
     externImports: [],
     declarationGlobs: [
-      attemptResolve(library.moduleName),
-      attemptResolve(`@types/${library.moduleName}`),
+      attemptResolve(library.moduleName, from),
+      attemptResolve(`@types/${library.moduleName}`, from),
       ...(declarationGlobs || []),
     ].filter((glob): glob is string => !!glob),
     ...library,
-  };
+  });
 }
 
-function attemptResolve(moduleName: string): string | null {
+/** @deprecated */
+export const applyDefaults = deprecate(
+  createApplyDefaults(__dirname),
+  '"applyDefaults" retrieves information relative to the "@canva/closure-compiler-externs-generator" package, incorrect modules may be resolved. Use "createApplyDefaults" instead.',
+);
+
+function attemptResolve(moduleName: string, from: string): string | null {
   let p: string;
   try {
-    p = require.resolve(join(moduleName, 'package.json'));
+    p = require.resolve(join(moduleName, 'package.json'), { paths: [from] });
   } catch (e) {
     if (e.code === 'MODULE_NOT_FOUND') {
       return null;

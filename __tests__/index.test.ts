@@ -1,6 +1,14 @@
-import { applyDefaults, processLibraries, FS } from '../src/index';
+import {
+  createApplyDefaults,
+  processLibraries,
+  FS,
+  Library,
+} from '../src/index';
 import { Volume, createFsFromVolume } from 'memfs';
 import { libraries } from './fixtures/libraries';
+import * as path from 'path';
+
+const fixturesDir = path.resolve(__dirname, 'fixtures');
 
 function createVolumeAndFs() {
   const volume = new Volume();
@@ -12,6 +20,21 @@ function createVolumeAndFs() {
   };
 }
 
+function snapshotLibraries(
+  libraries: Partial<Library> & { moduleName: string }[],
+) {
+  const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
+  const { volume, fs } = createVolumeAndFs();
+  processLibraries(
+    '/',
+    libraries.map(tailoredApplyDefaults),
+    false,
+    fs,
+    fixturesDir,
+  );
+  expect(volume.toJSON()).toMatchSnapshot();
+}
+
 describe('externs-generator', () => {
   describe('generation', () => {
     it.each([false, true])(
@@ -19,25 +42,30 @@ describe('externs-generator', () => {
       (debug) => {
         expect.hasAssertions();
         const { volume, fs } = createVolumeAndFs();
-        processLibraries('/', libraries, debug, fs);
+        processLibraries('/', libraries, debug, fs, fixturesDir);
         expect(volume.toJSON()).toMatchSnapshot();
       },
     );
 
     it('for scoped modules', () => {
       expect.hasAssertions();
-      const { volume, fs } = createVolumeAndFs();
-      processLibraries(
-        '/',
-        [
-          {
-            moduleName: '@sindresorhus/slugify',
-          },
-        ].map(applyDefaults),
-        false,
-        fs,
-      );
-      expect(volume.toJSON()).toMatchSnapshot();
+      snapshotLibraries([
+        { moduleName: '@scoped/exports-sugar-esm' },
+        { moduleName: 'cjs-named-exports' },
+        { moduleName: 'main-implicit' },
+        { moduleName: 'untyped-cjs-and-esm' },
+        { moduleName: 'untyped-cjs' },
+      ]);
+    });
+
+    it('for various single-export modules', () => {
+      expect.hasAssertions();
+      snapshotLibraries([
+        { moduleName: 'cjs-named-exports' },
+        { moduleName: 'main-implicit' },
+        { moduleName: 'untyped-cjs-and-esm' },
+        { moduleName: 'untyped-cjs' },
+      ]);
     });
   });
 });

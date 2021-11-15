@@ -17,11 +17,47 @@ npm install --save-dev @canva/closure-compiler-externs-generator
 
 ## Usage
 
+### CLI
+
+```js
+// path/to/libraries.js, must be CJS
+const CCEG = require('@canva/closure-compiler-externs-generator');
+const applyDefaults = createApplyDefaults(__dirname);
+module.exports.libraries = [{ ... }, { ... }].map(applyDefaults);
 ```
+
+```bash
 npx @canva/closure-compiler-externs-generator --librariesPath ./path/to/libraries.js --out ./my_externs
 ```
 
-To include symbol source information in the output add the `--debug` flag to the execution.
+To include symbol source information in the output add the `--debug` flag to the execution, paths will be relative to current working directory.
+
+### API
+
+```js
+// CJS
+const CCEG = require('@canva/closure-compiler-externs-generator');
+const fs = require('node:fs');
+const cwd = __dirname;
+// NodeJS >= v12 ESM
+import CCEG from '@canva/closure-compiler-externs-generator';
+import fs from 'node:fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const cwd = dirname(fileURLToPath(import.meta.url));;
+
+const applyDefaults = CCEG.createApplyDefaults(cwd);
+const libraries = [{ ... }, { ... }].map(applyDefaults);
+
+CCEG.processLibraries(
+  './my_externs',
+  libraries,
+  // `true` to include symbol source information
+  false,
+  fs,
+  cwd,
+);
+```
 
 ## Why Externs?
 
@@ -63,7 +99,8 @@ used by a library. So this tool generates externs for a library in 4 steps:
 
 ## Caveats
 
-The generated externs only contain symbol data, no type information.
+- The generated externs only contain symbol data, no type information.
+- Only `main` imports are supported. Imports like `require('foo/bar')` will have unpredictable results.
 
 ## Releasing
 

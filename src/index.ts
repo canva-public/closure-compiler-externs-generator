@@ -16,21 +16,22 @@ import walkSync from 'walk-sync';
 import type { ExternalSymbol } from './get_external_symbols';
 import { getExternalSymbols } from './get_external_symbols';
 import { Library } from './library';
-export { applyDefaults, Library } from './library';
-
-const cwd = process.cwd();
+export { applyDefaults, createApplyDefaults, Library } from './library';
 
 /**
  * Generates a description of the symbol location in the declaration file, e.g.
  *   node_modules/@types/classnames/bind.d.ts (3:17)
  */
-function positionDescription({
-  sourceFile,
-  node,
-}: {
-  sourceFile: ts.SourceFile;
-  node: ts.Node;
-}) {
+function positionDescription(
+  {
+    sourceFile,
+    node,
+  }: {
+    sourceFile: ts.SourceFile;
+    node: ts.Node;
+  },
+  cwd: string,
+) {
   const { line, character } = sourceFile.getLineAndCharacterOfPosition(
     node.getStart(sourceFile),
   );
@@ -71,8 +72,9 @@ function writeSymbols(
   to: string,
   identifier: string,
   symbols: ExternalSymbol[],
-  debug = false,
-  fileSystem: FS = fs,
+  debug: boolean,
+  fileSystem: FS,
+  cwd: string,
 ) {
   const declarations: string[] = [];
   const properties: string[] = [];
@@ -92,7 +94,7 @@ function writeSymbols(
       case 'DECLARATION':
         if (debug) {
           declarations.push(
-            `var ${symbol.name}; // ${positionDescription(symbol)}`,
+            `var ${symbol.name}; // ${positionDescription(symbol, cwd)}`,
           );
         } else if (!seenDeclarations.has(symbol.name)) {
           seenDeclarations.add(symbol.name);
@@ -104,6 +106,7 @@ function writeSymbols(
           properties.push(
             `__${variableName}.${symbol.name}; // ${positionDescription(
               symbol,
+              cwd,
             )}`,
           );
         } else if (!seenProperties.has(symbol.name)) {
@@ -155,6 +158,7 @@ export function processLibraries(
   libraries: readonly Library[],
   debug: boolean,
   fileSystem: FS,
+  cwd: string = process.cwd(),
 ): void {
   const libraryToDeclarationPaths = getDeclarationPaths(libraries);
 
@@ -176,6 +180,7 @@ export function processLibraries(
         symbols,
         debug,
         fileSystem,
+        path.resolve(cwd),
       );
     }
   }
