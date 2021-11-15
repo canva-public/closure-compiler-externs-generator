@@ -34,22 +34,29 @@ To include symbol source information in the output add the `--debug` flag to the
 
 ### API
 
+If in a CommonJS context:
 ```js
-// CJS
 const CCEG = require('@canva/closure-compiler-externs-generator');
 const fs = require('node:fs');
 const resolveFrom = __dirname;
-// NodeJS >= v12 ESM
+```
+
+If in a ES module context (NodeJS v12 and up):
+```js
 import CCEG from '@canva/closure-compiler-externs-generator';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const resolveFrom = dirname(fileURLToPath(import.meta.url));;
+const resolveFrom = dirname(fileURLToPath(import.meta.url));
+```
 
+Then use as follows:
+```js
 const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
 const libraries = [{ ... }, { ... }].map(applyDefaults);
 
 CCEG.processLibraries(
+  // Where externs will be written
   './my_externs',
   libraries,
   // `true` to include symbol source information
