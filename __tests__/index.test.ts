@@ -76,6 +76,7 @@ describe('externs-generator', () => {
       snapshotLibraries([
         { moduleName: 'cjs-named-exports' },
         { moduleName: 'main-implicit' },
+        { moduleName: 'typings-synonym' },
         { moduleName: 'untyped-cjs-and-esm' },
         { moduleName: 'untyped-cjs' },
       ]);

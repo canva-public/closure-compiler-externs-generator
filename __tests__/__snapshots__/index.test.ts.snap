@@ -40,6 +40,11 @@ __cjs_named_exports.foo;
 var foo;
 const __main_implicit = {};
 ",
+  "/out/typings_synonym.js": "// @formatter:off
+const __typings_synonym = {};
+__typings_synonym.bar;
+__typings_synonym.foo;
+",
   "/out/untyped_cjs.js": "// @formatter:off
 var UntypedCjs;
 const __untyped_cjs = {};
