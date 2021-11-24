@@ -65,6 +65,7 @@ function attemptResolveTypesModule(
   return typedModuleName && attemptResolve(typedModuleName, from);
 }
 
+/** @todo FS implementation as param */
 export function createApplyDefaults(from: string) {
   return ({
     declarationGlobs,

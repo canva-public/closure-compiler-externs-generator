@@ -1,22 +1,64 @@
 // Copyright 2021 Canva Inc. All Rights Reserved.
 
-import * as fs from 'fs';
+import type fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-const defaultReadFileSync = (path: string) => fs.readFileSync(path, 'utf8');
-const defaultResolveModule = (
-  moduleName: string,
-  containingFile: string,
-): string | undefined => {
-  const result = ts.resolveModuleName(
-    moduleName,
-    containingFile,
-    ts.getDefaultCompilerOptions(),
-    ts.sys,
-  );
-  return result.resolvedModule && result.resolvedModule.resolvedFileName;
-};
+function createHost(
+  fileSystem: FS,
+  cwd: string,
+): Required<Omit<ts.ModuleResolutionHost, 'trace'>> {
+  function stat(path: string): fs.Stats | undefined {
+    try {
+      return fileSystem.statSync(path);
+    } catch {
+      return undefined;
+    }
+  }
+
+  return {
+    fileExists: (fileName) => !!stat(fileName)?.isFile(),
+    readFile: (fileName) => {
+      try {
+        return fileSystem.readFileSync(fileName, 'utf-8');
+      } catch {
+        return undefined;
+      }
+    },
+    directoryExists: (directoryName) => !!stat(directoryName)?.isDirectory(),
+    getCurrentDirectory: () => cwd,
+    getDirectories: (parentPath) => {
+      try {
+        return fileSystem
+          .readdirSync(parentPath)
+          .filter((itemPath) =>
+            fileSystem.statSync(path.join(parentPath, itemPath)).isDirectory(),
+          );
+      } catch {
+        return [];
+      }
+    },
+    realpath: fileSystem.realpathSync,
+  };
+}
+
+function createResolveModule(
+  fileSystem: FS,
+  resolveFrom: string,
+): (moduleName: string, containingFile: string) => string | undefined {
+  const host = createHost(fileSystem, resolveFrom);
+
+  return function (moduleName, containingFile) {
+    const result = ts.resolveModuleName(
+      moduleName,
+      containingFile,
+      ts.getDefaultCompilerOptions(),
+      host,
+      // TODO Use cache
+    );
+    return result.resolvedModule && result.resolvedModule.resolvedFileName;
+  };
+}
 
 export const enum SymbolType {
   /**
@@ -47,6 +89,11 @@ const ignored_typings: RegExp[] = [
 const isNotIgnored = (f: ts.SourceFile) =>
   ignored_typings.every((ignored) => !ignored.test(f.fileName));
 
+export type FS = Pick<
+  typeof fs,
+  'statSync' | 'readFileSync' | 'readdirSync' | 'realpathSync'
+>;
+
 /**
  * Generates the list of property and symbol names used in vendor libraries that must not be
  * renamed during minification and/or mangling. Names are taken from TypeScript declaration files.
@@ -56,26 +103,35 @@ const isNotIgnored = (f: ts.SourceFile) =>
  *     statements.
  * @param readFileSync
  * @param resolveModule
+ * @param resolveFrom
  */
 export function getExternalSymbols(
   files: Iterable<string>,
   dontFollow: Iterable<string> = [],
-  readFileSync: typeof defaultReadFileSync = defaultReadFileSync,
-  resolveModule: typeof defaultResolveModule = defaultResolveModule,
+  fileSystem: FS,
+  resolveFrom: string,
 ): ExternalSymbol[] {
   const sourceFiles = Array.from(files, (file) => {
-    const source = readFileSync(file);
+    const source = fileSystem.readFileSync(file, 'utf-8');
     return ts.createSourceFile(file, source, ts.ScriptTarget.ES2015, true);
   });
 
   const mergedDontFollow = new Set(
     [...files, ...dontFollow].map((p) => path.resolve(p)),
   );
+
+  const resolveModule = createResolveModule(fileSystem, resolveFrom);
+
   return sourceFiles
     .filter(isNotIgnored)
     .reduce((symbols: ExternalSymbol[], file) => {
       return symbols.concat(
-        findSymbolNames(file, mergedDontFollow, readFileSync, resolveModule),
+        findSymbolNames(
+          file,
+          mergedDontFollow,
+          fileSystem.readFileSync,
+          resolveModule,
+        ),
       );
     }, []);
 }
@@ -83,11 +139,14 @@ export function getExternalSymbols(
 /**
  * Walks the source file's AST and populates the builder with property and declared symbol names.
  */
-function findSymbolNames(
+export function findSymbolNames(
   sourceFile: ts.SourceFile,
   dontFollow: Set<string>,
-  readFileSync: typeof defaultReadFileSync,
-  resolveModule: typeof defaultResolveModule,
+  readFileSync: FS['readFileSync'],
+  resolveModule: (
+    moduleName: string,
+    containingFile: string,
+  ) => string | undefined,
 ): ExternalSymbol[] {
   const symbols: ExternalSymbol[] = [];
   visitNode(sourceFile);
@@ -162,7 +221,7 @@ function findSymbolNames(
       dontFollow.add(file);
       const source = ts.createSourceFile(
         file,
-        readFileSync(file),
+        readFileSync(file, 'utf-8'),
         ts.ScriptTarget.ES2015,
         true,
       );
