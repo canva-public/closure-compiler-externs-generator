@@ -3,6 +3,11 @@
 import type { ExternalSymbol } from '../src/get_external_symbols';
 import { getExternalSymbols, SymbolType } from '../src/get_external_symbols';
 
+/**
+ * @todo TypeScript does not adhere to semantic versioning so mocking `resolveModule`` will hide breaks.
+ *       We can mock within their API using the `ModuleResolutionHost` interface, a subset of `System`.
+ */
+
 describe('getExternalSymbols', () => {
   it('follows imports', () => {
     expect.hasAssertions();
