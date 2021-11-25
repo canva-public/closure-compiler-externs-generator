@@ -3,7 +3,7 @@
 import {
   ExternalSymbol,
   findSymbolNames,
-  RequiredFS,
+  FS,
 } from '../src/get_external_symbols';
 import { getExternalSymbols, SymbolType } from '../src/get_external_symbols';
 import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
@@ -210,7 +210,7 @@ describe('getExternalSymbols', () => {
   ) {
     const original = Object.assign({}, fsState);
     const volume = Volume.fromJSON(fsState);
-    const fs = (createFsFromVolume(volume) as unknown) as RequiredFS;
+    const fs = (createFsFromVolume(volume) as unknown) as FS;
 
     const symbols = getExternalSymbols(declarationFiles, dontFollow, fs, '/');
 
