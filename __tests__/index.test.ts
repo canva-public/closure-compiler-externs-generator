@@ -87,6 +87,7 @@ describe('externs-generator', () => {
       expect.hasAssertions();
       snapshotLibraries([
         { moduleName: '@scoped/exports-sugar-esm' },
+        { moduleName: '@scoped/exports-sugarfree-esm' },
         { moduleName: 'cjs-named-exports' },
         { moduleName: 'main-implicit' },
         { moduleName: 'untyped-cjs-and-esm' },

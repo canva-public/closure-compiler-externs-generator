@@ -16,6 +16,11 @@ const __scoped__exports_sugar_esm = {};
 __scoped__exports_sugar_esm.barfoo;
 __scoped__exports_sugar_esm.foobar;
 ",
+  "/out/scoped__exports_sugarfree_esm.js": "// @formatter:off
+const __scoped__exports_sugarfree_esm = {};
+__scoped__exports_sugarfree_esm.barfoo;
+__scoped__exports_sugarfree_esm.foobar;
+",
   "/out/untyped_cjs.js": "// @formatter:off
 var UntypedCjs;
 const __untyped_cjs = {};

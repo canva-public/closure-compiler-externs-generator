@@ -1,11 +1,13 @@
-import { resolve, dirname, join } from 'path';
-import { types, deprecate } from 'util';
+import { resolve, join } from 'path';
+import { deprecate } from 'util';
+import fs from 'fs';
 
 export type Library = {
   // The name used to import the module.
   moduleName: string;
   // Add an identifier which is safe to use as a filename.
   identifier: string;
+  // TODO This is unused. Why?
   // Modules that should force externs for this library to be loaded
   externImports: readonly string[];
   // TypeScript type declaration files.
@@ -88,20 +90,30 @@ export const applyDefaults = deprecate(
   '"applyDefaults" retrieves information relative to the "@canva/closure-compiler-externs-generator" package, incorrect modules may be resolved. Use "createApplyDefaults" instead.',
 );
 
-function errorWithCode(e: unknown): e is Error & { code: unknown } {
-  return types.isNativeError(e) && 'code' in e;
+function attemptResolve(moduleName: string, from: string): string | null {
+  const modulePath = findPackage(from, moduleName);
+  if (!modulePath) {
+    return null;
+  }
+  return join(modulePath, '/**/*.d.ts');
 }
 
-function attemptResolve(moduleName: string, from: string): string | null {
-  let p: string;
-  try {
-    p = require.resolve(join(moduleName, 'package.json'), { paths: [from] });
-  } catch (e) {
-    if (errorWithCode(e) && e.code === 'MODULE_NOT_FOUND') {
-      return null;
+/**
+ * Traverses up file system from specified path to find package.
+ */
+function findPackage(resolveFrom: string, moduleName: string): string | null {
+  let searchPath: string | false = resolveFrom;
+  while (searchPath) {
+    const proposedModulepath = join(searchPath, 'node_modules', moduleName);
+    if (fs.existsSync(proposedModulepath)) {
+      return proposedModulepath;
     }
-    /* istanbul ignore next */
-    throw e;
+    if (searchPath === resolve('/')) {
+      searchPath = false;
+    } else {
+      searchPath = resolve(searchPath, '..');
+    }
   }
-  return resolve(`${dirname(p)}/**/*.d.ts`);
+
+  return null;
 }
