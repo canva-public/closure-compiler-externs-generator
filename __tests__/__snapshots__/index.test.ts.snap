@@ -2,91 +2,508 @@
 
 exports[`externs-generator generation for scoped modules 1`] = `
 Object {
-  "/out/cjs_named_exports.js": "// @formatter:off
-const __cjs_named_exports = {};
-__cjs_named_exports.bar;
-__cjs_named_exports.foo;
-",
-  "/out/main_implicit.js": "// @formatter:off
-var foo;
-const __main_implicit = {};
-",
-  "/out/scoped__exports_sugar_esm.js": "// @formatter:off
-const __scoped__exports_sugar_esm = {};
-__scoped__exports_sugar_esm.barfoo;
-__scoped__exports_sugar_esm.foobar;
-",
-  "/out/scoped__exports_sugarfree_esm.js": "// @formatter:off
-const __scoped__exports_sugarfree_esm = {};
-__scoped__exports_sugarfree_esm.barfoo;
-__scoped__exports_sugarfree_esm.foobar;
-",
-  "/out/untyped_cjs.js": "// @formatter:off
-var UntypedCjs;
-const __untyped_cjs = {};
-__untyped_cjs.useFoo;
-",
-  "/out/untyped_cjs_and_esm.js": "// @formatter:off
-var UntypedCjsAndEsm;
-const __untyped_cjs_and_esm = {};
-__untyped_cjs_and_esm.useFoo;
-",
+  "/index.js": "module.exports.useFoo = () => {};",
+  "/index.mjs": "export const useFoo = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.mjs": "export const extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs-and-esm\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"import\\": \\"./src/main.mjs\\",
+      \\"require\\": \\"./src/main.js\\"
+    },
+    \\"./extra\\": {
+      \\"import\\": \\"./extra/src/extra.mjs\\",
+      \\"require\\": \\"./extra/src/extra.js\\"
+    }
+  },
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.mjs": "export const main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-esm/extra.d.ts": "export function extra(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/extra.js": "export function extra() {}",
+  "/node_modules/@scoped/exports-multiple-esm/main.d.ts": "export function main(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/main.js": "export function main() {}",
+  "/node_modules/@scoped/exports-multiple-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\",
+    \\"./extra\\": \\"./extra.js\\"
+  }
+}",
+  "/node_modules/@scoped/exports-sugar-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugar-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugar-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugar-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": \\"./main.js\\"
+}",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugarfree-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugarfree-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\"
+  }
+}",
+  "/node_modules/@types/untyped-cjs-and-esm/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjsAndEsm { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs-and-esm\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/@types/untyped-cjs/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjs { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/cjs-named-exports/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/cjs-named-exports/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/cjs-named-exports/package.json": "{
+  \\"name\\": \\"cjs-named-exports\\"
+}",
+  "/node_modules/main-implicit/index.d.ts": "export = foo;
+declare function foo(): void;",
+  "/node_modules/main-implicit/index.js": "module.exports = function foo() {}",
+  "/node_modules/main-implicit/package.json": "{
+  \\"name\\": \\"main-implicit\\"
+}",
+  "/node_modules/typings-synonym/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/typings-synonym/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/typings-synonym/package.json": "{
+  \\"name\\": \\"typings-synonym\\",
+  \\"main\\": \\"./main.js\\",
+  \\"typings\\": \\"./main-types.d.ts\\"
+}",
+  "/package.json": "{
+  \\"name\\": \\"untyped-cjs-and-esm\\",
+  \\"main\\": \\"./main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"require\\": \\"./main.js\\",
+      \\"import\\": \\"./main.mjs\\"
+    }
+  }
+}",
 }
 `;
 
 exports[`externs-generator generation for various single-export modules 1`] = `
 Object {
-  "/out/cjs_named_exports.js": "// @formatter:off
-const __cjs_named_exports = {};
-__cjs_named_exports.bar;
-__cjs_named_exports.foo;
-",
-  "/out/main_implicit.js": "// @formatter:off
-var foo;
-const __main_implicit = {};
-",
-  "/out/typings_synonym.js": "// @formatter:off
-const __typings_synonym = {};
-__typings_synonym.bar;
-__typings_synonym.foo;
-",
-  "/out/untyped_cjs.js": "// @formatter:off
-var UntypedCjs;
-const __untyped_cjs = {};
-__untyped_cjs.useFoo;
-",
-  "/out/untyped_cjs_and_esm.js": "// @formatter:off
-var UntypedCjsAndEsm;
-const __untyped_cjs_and_esm = {};
-__untyped_cjs_and_esm.useFoo;
-",
+  "/index.js": "module.exports.useFoo = () => {};",
+  "/index.mjs": "export const useFoo = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.mjs": "export const extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs-and-esm\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"import\\": \\"./src/main.mjs\\",
+      \\"require\\": \\"./src/main.js\\"
+    },
+    \\"./extra\\": {
+      \\"import\\": \\"./extra/src/extra.mjs\\",
+      \\"require\\": \\"./extra/src/extra.js\\"
+    }
+  },
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.mjs": "export const main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-esm/extra.d.ts": "export function extra(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/extra.js": "export function extra() {}",
+  "/node_modules/@scoped/exports-multiple-esm/main.d.ts": "export function main(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/main.js": "export function main() {}",
+  "/node_modules/@scoped/exports-multiple-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\",
+    \\"./extra\\": \\"./extra.js\\"
+  }
+}",
+  "/node_modules/@scoped/exports-sugar-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugar-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugar-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugar-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": \\"./main.js\\"
+}",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugarfree-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugarfree-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\"
+  }
+}",
+  "/node_modules/@types/untyped-cjs-and-esm/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjsAndEsm { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs-and-esm\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/@types/untyped-cjs/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjs { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/cjs-named-exports/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/cjs-named-exports/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/cjs-named-exports/package.json": "{
+  \\"name\\": \\"cjs-named-exports\\"
+}",
+  "/node_modules/main-implicit/index.d.ts": "export = foo;
+declare function foo(): void;",
+  "/node_modules/main-implicit/index.js": "module.exports = function foo() {}",
+  "/node_modules/main-implicit/package.json": "{
+  \\"name\\": \\"main-implicit\\"
+}",
+  "/node_modules/typings-synonym/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/typings-synonym/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/typings-synonym/package.json": "{
+  \\"name\\": \\"typings-synonym\\",
+  \\"main\\": \\"./main.js\\",
+  \\"typings\\": \\"./main-types.d.ts\\"
+}",
+  "/package.json": "{
+  \\"name\\": \\"untyped-cjs-and-esm\\",
+  \\"main\\": \\"./main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"require\\": \\"./main.js\\",
+      \\"import\\": \\"./main.mjs\\"
+    }
+  }
+}",
 }
 `;
 
 exports[`externs-generator generation produces externs for a given set of modules with debug = false 1`] = `
 Object {
-  "/out/main_implicit.js": "// @formatter:off
-var foo;
-const __main_implicit = {};
-",
-  "/out/untyped_cjs.js": "// @formatter:off
-var UntypedCjs;
-const __untyped_cjs = {};
-__untyped_cjs.useFoo;
-",
+  "/index.js": "module.exports.useFoo = () => {};",
+  "/index.mjs": "export const useFoo = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.mjs": "export const extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs-and-esm\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"import\\": \\"./src/main.mjs\\",
+      \\"require\\": \\"./src/main.js\\"
+    },
+    \\"./extra\\": {
+      \\"import\\": \\"./extra/src/extra.mjs\\",
+      \\"require\\": \\"./extra/src/extra.js\\"
+    }
+  },
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.mjs": "export const main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-esm/extra.d.ts": "export function extra(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/extra.js": "export function extra() {}",
+  "/node_modules/@scoped/exports-multiple-esm/main.d.ts": "export function main(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/main.js": "export function main() {}",
+  "/node_modules/@scoped/exports-multiple-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\",
+    \\"./extra\\": \\"./extra.js\\"
+  }
+}",
+  "/node_modules/@scoped/exports-sugar-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugar-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugar-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugar-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": \\"./main.js\\"
+}",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugarfree-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugarfree-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\"
+  }
+}",
+  "/node_modules/@types/untyped-cjs-and-esm/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjsAndEsm { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs-and-esm\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/@types/untyped-cjs/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjs { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/cjs-named-exports/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/cjs-named-exports/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/cjs-named-exports/package.json": "{
+  \\"name\\": \\"cjs-named-exports\\"
+}",
+  "/node_modules/main-implicit/index.d.ts": "export = foo;
+declare function foo(): void;",
+  "/node_modules/main-implicit/index.js": "module.exports = function foo() {}",
+  "/node_modules/main-implicit/package.json": "{
+  \\"name\\": \\"main-implicit\\"
+}",
+  "/node_modules/typings-synonym/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/typings-synonym/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/typings-synonym/package.json": "{
+  \\"name\\": \\"typings-synonym\\",
+  \\"main\\": \\"./main.js\\",
+  \\"typings\\": \\"./main-types.d.ts\\"
+}",
+  "/package.json": "{
+  \\"name\\": \\"untyped-cjs-and-esm\\",
+  \\"main\\": \\"./main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"require\\": \\"./main.js\\",
+      \\"import\\": \\"./main.mjs\\"
+    }
+  }
+}",
 }
 `;
 
 exports[`externs-generator generation produces externs for a given set of modules with debug = true 1`] = `
 Object {
-  "/out/main_implicit.js": "// @formatter:off
-var foo; // ../node_modules/main-implicit/index.d.ts (2:18)
-const __main_implicit = {};
-",
-  "/out/untyped_cjs.js": "// @formatter:off
-var UntypedCjs; // ../node_modules/@types/untyped-cjs/index.d.ts (3:19)
-const __untyped_cjs = {};
-__untyped_cjs.useFoo; // ../node_modules/@types/untyped-cjs/index.d.ts (4:14)
-",
+  "/index.js": "module.exports.useFoo = () => {};",
+  "/index.mjs": "export const useFoo = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/extra/src/extra.mjs": "export const extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs-and-esm\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"import\\": \\"./src/main.mjs\\",
+      \\"require\\": \\"./src/main.js\\"
+    },
+    \\"./extra\\": {
+      \\"import\\": \\"./extra/src/extra.mjs\\",
+      \\"require\\": \\"./extra/src/extra.js\\"
+    }
+  },
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs-and-esm/src/main.mjs": "export const main = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/package.json": "{
+  \\"name\\": \\"extra\\",
+  \\"main\\": \\"./src/extra.js\\",
+  \\"types\\": \\"./src/extra.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.d.ts": "export = Scoped_ExportsMultipleCjs_Extra;
+declare namespace Scoped_ExportsMultipleCjs_Extra { function extra(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/extra/src/extra.js": "module.exports.extra = () => {};",
+  "/node_modules/@scoped/exports-multiple-cjs/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-cjs\\",
+  \\"main\\": \\"./src/main.js\\",
+  \\"types\\": \\"./src/main.d.ts\\"
+}",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.d.ts": "export = Scoped_ExportsMultipleCJS;
+declare namespace Scoped_ExportsMultipleCJS { function main(): void; }",
+  "/node_modules/@scoped/exports-multiple-cjs/src/main.js": "module.exports.main = () => {};",
+  "/node_modules/@scoped/exports-multiple-esm/extra.d.ts": "export function extra(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/extra.js": "export function extra() {}",
+  "/node_modules/@scoped/exports-multiple-esm/main.d.ts": "export function main(): void;",
+  "/node_modules/@scoped/exports-multiple-esm/main.js": "export function main() {}",
+  "/node_modules/@scoped/exports-multiple-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-multiple-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\",
+    \\"./extra\\": \\"./extra.js\\"
+  }
+}",
+  "/node_modules/@scoped/exports-sugar-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugar-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugar-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugar-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": \\"./main.js\\"
+}",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.d.ts": "export function foobar(): void;
+export const barfoo: string;",
+  "/node_modules/@scoped/exports-sugarfree-esm/main.js": "export function foobar() {}
+export const barfoo = '';",
+  "/node_modules/@scoped/exports-sugarfree-esm/package.json": "{
+  \\"name\\": \\"@scoped/exports-sugarfree-esm\\",
+  \\"type\\": \\"module\\",
+  \\"exports\\": {
+    \\"./\\": \\"./main.js\\"
+  }
+}",
+  "/node_modules/@types/untyped-cjs-and-esm/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjsAndEsm { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs-and-esm/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs-and-esm\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/@types/untyped-cjs/index.d.ts": "export = UntypedCjs;
+declare namespace UntypedCjs { function useFoo(): void; }",
+  "/node_modules/@types/untyped-cjs/package.json": "{
+  \\"name\\": \\"@types/untyped-cjs\\",
+  \\"types\\": \\"./index.d.ts\\"
+}",
+  "/node_modules/cjs-named-exports/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/cjs-named-exports/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/cjs-named-exports/package.json": "{
+  \\"name\\": \\"cjs-named-exports\\"
+}",
+  "/node_modules/main-implicit/index.d.ts": "export = foo;
+declare function foo(): void;",
+  "/node_modules/main-implicit/index.js": "module.exports = function foo() {}",
+  "/node_modules/main-implicit/package.json": "{
+  \\"name\\": \\"main-implicit\\"
+}",
+  "/node_modules/typings-synonym/main-types.d.ts": "export function foo(): void;
+export function bar(): string;",
+  "/node_modules/typings-synonym/main.js": "module.exports.foo = () => {};
+module.exports.bar = () => '';",
+  "/node_modules/typings-synonym/package.json": "{
+  \\"name\\": \\"typings-synonym\\",
+  \\"main\\": \\"./main.js\\",
+  \\"typings\\": \\"./main-types.d.ts\\"
+}",
+  "/package.json": "{
+  \\"name\\": \\"untyped-cjs-and-esm\\",
+  \\"main\\": \\"./main.js\\",
+  \\"exports\\": {
+    \\"./\\": {
+      \\"require\\": \\"./main.js\\",
+      \\"import\\": \\"./main.mjs\\"
+    }
+  }
+}",
 }
 `;

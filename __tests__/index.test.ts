@@ -5,12 +5,12 @@ import {
   Library,
 } from '../src/index';
 import { Volume, createFsFromVolume } from 'memfs';
-import { libraries } from './fixtures/libraries';
+import { createLibraries } from './fixtures/libraries';
 import { createNodeModules } from './fixtures/node_modules-fs';
 import { FS as LibraryFS } from '../src/library';
 
 function createVolumeAndFs() {
-  const volume = Volume.fromJSON(createNodeModules('/'));
+  const volume = Volume.fromJSON(createNodeModules('/'), '/');
   const fileSystem = (createFsFromVolume(volume) as unknown) as IndexFS &
     LibraryFS;
 
@@ -30,7 +30,7 @@ function snapshotLibraries(
     libraries.map(tailoredApplyDefaults),
     false,
     fileSystem,
-    process.cwd(),
+    '/',
   );
   expect(volume.toJSON()).toMatchSnapshot();
 }
@@ -42,6 +42,7 @@ describe('externs-generator', () => {
       (debug) => {
         expect.hasAssertions();
         const { volume, fileSystem } = createVolumeAndFs();
+        const libraries = createLibraries('/', fileSystem);
         processLibraries('/out', libraries, debug, fileSystem, process.cwd());
         expect(volume.toJSON()).toMatchSnapshot();
       },

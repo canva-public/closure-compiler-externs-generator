@@ -209,7 +209,7 @@ describe('getExternalSymbols', () => {
     expectedSymbols: { name: string; type: SymbolType }[],
   ) {
     const original = Object.assign({}, fsState);
-    const volume = Volume.fromJSON(fsState);
+    const volume = Volume.fromJSON(fsState, '/');
     const fs = (createFsFromVolume(volume) as unknown) as FS;
 
     const symbols = getExternalSymbols(declarationFiles, dontFollow, fs, '/');
