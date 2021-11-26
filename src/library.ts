@@ -25,7 +25,7 @@ export type Library = {
  * and https://github.com/microsoft/dts-gen/blob/af84657554e01fcfa81b210a43efd8236f476fd4/lib/names.ts#L1-L8
  *
  * Example:
- *  @foo/bar-baz/quux => foo__bar_baz/quux
+ *  `@foo/bar-baz/quux => foo__bar_baz/quux`
  */
 export function moduleNameToIdentifier(moduleName: string): string {
   let id = moduleName.replace(/-/g, '_');
@@ -41,7 +41,7 @@ export function moduleNameToIdentifier(moduleName: string): string {
  * Converts a module name to a types module name.
  *
  * Example:
- *  @foo/bar-baz => @types/foo__bar-baz
+ *  `@foo/bar-baz => @types/foo__bar-baz`
  */
 export function moduleNameToTypesModule(moduleName: string): string | null {
   if (moduleName.startsWith('@')) {
@@ -65,13 +65,15 @@ export function moduleNameToTypesModule(moduleName: string): string | null {
 function attemptResolveTypesModule(
   moduleName: string,
   from: string,
+  fileSystem: FS,
 ): string | null {
   const typedModuleName = moduleNameToTypesModule(moduleName);
-  return typedModuleName && attemptResolve(typedModuleName, from);
+  return typedModuleName && attemptResolve(typedModuleName, from, fileSystem);
 }
 
-/** @todo FS implementation as param */
-export function createApplyDefaults(from: string) {
+export type FS = Pick<typeof fs, 'existsSync'>;
+
+export function createApplyDefaults(from: string, fileSystem: FS = fs) {
   return ({
     declarationGlobs,
     ...library
@@ -79,8 +81,8 @@ export function createApplyDefaults(from: string) {
     identifier: moduleNameToIdentifier(library.moduleName),
     externImports: [],
     declarationGlobs: [
-      attemptResolve(library.moduleName, from),
-      attemptResolveTypesModule(library.moduleName, from),
+      attemptResolve(library.moduleName, from, fileSystem),
+      attemptResolveTypesModule(library.moduleName, from, fileSystem),
       ...(declarationGlobs || []),
     ].filter((glob): glob is string => !!glob),
     ...library,
@@ -89,12 +91,16 @@ export function createApplyDefaults(from: string) {
 
 /** @deprecated */
 export const applyDefaults = deprecate(
-  createApplyDefaults(__dirname),
+  createApplyDefaults(__dirname, fs),
   '"applyDefaults" retrieves information relative to the "@canva/closure-compiler-externs-generator" package, incorrect modules may be resolved. Use "createApplyDefaults" instead.',
 );
 
-function attemptResolve(moduleName: string, from: string): string | null {
-  const modulePath = findPackage(from, moduleName);
+function attemptResolve(
+  moduleName: string,
+  from: string,
+  fileSystem: FS,
+): string | null {
+  const modulePath = findPackage(from, moduleName, fileSystem);
   if (!modulePath) {
     return null;
   }
@@ -104,11 +110,15 @@ function attemptResolve(moduleName: string, from: string): string | null {
 /**
  * Traverses up file system from specified path to find package.
  */
-function findPackage(resolveFrom: string, moduleName: string): string | null {
+function findPackage(
+  resolveFrom: string,
+  moduleName: string,
+  fileSystem: FS,
+): string | null {
   let searchPath: string | false = resolveFrom;
   while (searchPath) {
     const proposedModulepath = join(searchPath, 'node_modules', moduleName);
-    if (fs.existsSync(proposedModulepath)) {
+    if (fileSystem.existsSync(proposedModulepath)) {
       return proposedModulepath;
     }
     if (searchPath === resolve('/')) {

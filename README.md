@@ -56,7 +56,7 @@ const resolveFrom = path.dirname(fileURLToPath(import.meta.url));
 Then use as follows:
 
 ```js
-const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
+const applyDefaults = CCEG.createApplyDefaults(resolveFrom, fs);
 const libraries = [{ ... }, { ... }].map(applyDefaults);
 
 CCEG.processLibraries(

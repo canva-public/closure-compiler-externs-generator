@@ -1,34 +1,18 @@
 import {
   createApplyDefaults,
   processLibraries,
-  FS,
+  FS as IndexFS,
   Library,
 } from '../src/index';
-import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
+import { Volume, createFsFromVolume } from 'memfs';
 import { libraries } from './fixtures/libraries';
-import * as path from 'path';
-import fs from 'fs';
-
-const fixturesDir = path.resolve(__dirname, 'fixtures');
+import { createNodeModules } from './fixtures/node_modules-fs';
+import { FS as LibraryFS } from '../src/library';
 
 function createVolumeAndFs() {
-  const volume = new Volume();
-  const fileSystem = new Proxy((createFsFromVolume(volume) as unknown) as FS, {
-    get(target, prop: keyof FS) {
-      if (['mkdirSync', 'writeFileSync'].includes(prop)) {
-        return target[prop];
-      }
-      return (itemPath: string, ...args: unknown[]) => {
-        if (itemPath.startsWith(path.join(fixturesDir, 'node_modules'))) {
-          // @ts-expect-error types are pain
-          return fs[prop](itemPath, ...args);
-        } else {
-          // @ts-expect-error types are pain
-          target[prop](itemPath, ...args);
-        }
-      };
-    },
-  });
+  const volume = Volume.fromJSON(createNodeModules('/'));
+  const fileSystem = (createFsFromVolume(volume) as unknown) as IndexFS &
+    LibraryFS;
 
   return {
     fileSystem,
@@ -36,33 +20,19 @@ function createVolumeAndFs() {
   };
 }
 
-function normaliseVolumeSnapshot(directoryJSON: DirectoryJSON): DirectoryJSON {
-  const newDirectoryJSON: DirectoryJSON = {};
-
-  for (let filePath in directoryJSON) {
-    const content = directoryJSON[filePath];
-    if (filePath.startsWith(fixturesDir)) {
-      filePath = '/' + path.relative(fixturesDir, filePath);
-    }
-    newDirectoryJSON[filePath] = content;
-  }
-
-  return newDirectoryJSON;
-}
-
 function snapshotLibraries(
   libraries: Partial<Library> & { moduleName: string }[],
 ) {
-  const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
   const { volume, fileSystem } = createVolumeAndFs();
+  const tailoredApplyDefaults = createApplyDefaults('/', fileSystem);
   processLibraries(
-    path.join(fixturesDir, 'out'),
+    '/out',
     libraries.map(tailoredApplyDefaults),
     false,
     fileSystem,
     process.cwd(),
   );
-  expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
+  expect(volume.toJSON()).toMatchSnapshot();
 }
 
 describe('externs-generator', () => {
@@ -72,14 +42,8 @@ describe('externs-generator', () => {
       (debug) => {
         expect.hasAssertions();
         const { volume, fileSystem } = createVolumeAndFs();
-        processLibraries(
-          path.join(fixturesDir, 'out'),
-          libraries,
-          debug,
-          fileSystem,
-          process.cwd(),
-        );
-        expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
+        processLibraries('/out', libraries, debug, fileSystem, process.cwd());
+        expect(volume.toJSON()).toMatchSnapshot();
       },
     );
 
