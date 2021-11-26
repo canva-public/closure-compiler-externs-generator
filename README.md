@@ -60,7 +60,7 @@ const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
 const libraries = [{ ... }, { ... }].map(applyDefaults);
 
 CCEG.processLibraries(
-  // Where externs will be written, relative to working directory
+  // Where externs will be written
   path.join(process.cwd(), './my_externs'),
   libraries,
   // `true` to include symbol source information
