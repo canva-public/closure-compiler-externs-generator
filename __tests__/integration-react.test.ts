@@ -9,17 +9,17 @@ function createVolumeAndFs() {
   const volume = new Volume();
   const fileSystem = new Proxy((createFsFromVolume(volume) as unknown) as FS, {
     get(target, prop: keyof FS) {
-      if (['mkdirSync', 'writeFileSync'].includes(prop)) {
+      if (prop === 'mkdirSync' || prop === 'writeFileSync') {
         return target[prop];
       }
       return (itemPath: string, ...args: unknown[]) => {
+        let impl: (path: string, ...arg: unknown[]) => unknown;
         if (itemPath.startsWith(path.join(fixturesDir, 'node_modules'))) {
-          // @ts-expect-error types are pain
-          return fs[prop](itemPath, ...args);
+          impl = fs[prop];
         } else {
-          // @ts-expect-error types are pain
-          target[prop](itemPath, ...args);
+          impl = target[prop];
         }
+        return impl(itemPath, ...args);
       };
     },
   });
