@@ -7,8 +7,11 @@ export type Library = {
   moduleName: string;
   // Add an identifier which is safe to use as a filename.
   identifier: string;
-  // TODO This is unused. Why?
-  // Modules that should force externs for this library to be loaded
+  /**
+   * @deprecated This property is vestigial, in the same way an Emu has wings but cannot fly.
+   * In another place and time it instructed a Closure Compiler plugin for Webpack to load
+   * additional externs for this library.
+   */
   externImports: readonly string[];
   // TypeScript type declaration files.
   // Will always include node_modules/${library.moduleName} and
