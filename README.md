@@ -39,6 +39,7 @@ If in a CommonJS context:
 ```js
 const CCEG = require('@canva/closure-compiler-externs-generator');
 const fs = require('node:fs');
+const path = require('node:path');
 const resolveFrom = __dirname;
 ```
 
@@ -47,24 +48,26 @@ If in a ES module context (NodeJS v12 and up):
 ```js
 import CCEG from '@canva/closure-compiler-externs-generator';
 import fs from 'node:fs';
-import { dirname } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-const resolveFrom = dirname(fileURLToPath(import.meta.url));
+const resolveFrom = path.dirname(fileURLToPath(import.meta.url));
 ```
 
 Then use as follows:
 
 ```js
-const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
+const applyDefaults = CCEG.createApplyDefaults(resolveFrom, fs);
 const libraries = [{ ... }, { ... }].map(applyDefaults);
 
 CCEG.processLibraries(
   // Where externs will be written
-  './my_externs',
+  path.join(process.cwd(), './my_externs'),
   libraries,
   // `true` to include symbol source information
   false,
   fs,
+  // The working directory for TypeScript
+  resolveFrom,
 );
 ```
 

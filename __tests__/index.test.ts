@@ -1,51 +1,38 @@
 import {
   createApplyDefaults,
   processLibraries,
-  FS,
+  FS as IndexFS,
   Library,
 } from '../src/index';
-import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
-import { libraries } from './fixtures/libraries';
-import * as path from 'path';
-
-const fixturesDir = path.resolve(__dirname, 'fixtures');
+import { Volume, createFsFromVolume } from 'memfs';
+import { createLibraries } from './fixtures/libraries';
+import { createNodeModules } from './fixtures/node_modules-fs';
+import { FS as LibraryFS } from '../src/library';
 
 function createVolumeAndFs() {
-  const volume = new Volume();
-  const fs = (createFsFromVolume(volume) as unknown) as FS;
+  const volume = Volume.fromJSON(createNodeModules('/'), '/');
+  const fileSystem = (createFsFromVolume(volume) as unknown) as IndexFS &
+    LibraryFS;
 
   return {
-    fs,
+    fileSystem,
     volume,
   };
-}
-
-function normaliseVolumeSnapshot(directoryJSON: DirectoryJSON): DirectoryJSON {
-  const newDirectoryJSON: DirectoryJSON = {};
-
-  for (let filePath in directoryJSON) {
-    const content = directoryJSON[filePath];
-    if (filePath.startsWith(fixturesDir)) {
-      filePath = '/' + path.relative(fixturesDir, filePath);
-    }
-    newDirectoryJSON[filePath] = content;
-  }
-
-  return newDirectoryJSON;
 }
 
 function snapshotLibraries(
   libraries: Partial<Library> & { moduleName: string }[],
 ) {
-  const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
-  const { volume, fs } = createVolumeAndFs();
+  const { volume, fileSystem } = createVolumeAndFs();
+  const tailoredApplyDefaults = createApplyDefaults('/', fileSystem);
   processLibraries(
-    path.join(fixturesDir, 'out'),
+    '/out',
     libraries.map(tailoredApplyDefaults),
     false,
-    fs,
+    fileSystem,
+    '/',
   );
-  expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
+  expect(volume.toJSON()).toMatchSnapshot();
 }
 
 describe('externs-generator', () => {
@@ -54,9 +41,10 @@ describe('externs-generator', () => {
       'produces externs for a given set of modules with debug = %s',
       (debug) => {
         expect.hasAssertions();
-        const { volume, fs } = createVolumeAndFs();
-        processLibraries(path.join(fixturesDir, 'out'), libraries, debug, fs);
-        expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
+        const { volume, fileSystem } = createVolumeAndFs();
+        const libraries = createLibraries('/', fileSystem);
+        processLibraries('/out', libraries, debug, fileSystem, process.cwd());
+        expect(volume.toJSON()).toMatchSnapshot();
       },
     );
 
@@ -64,6 +52,7 @@ describe('externs-generator', () => {
       expect.hasAssertions();
       snapshotLibraries([
         { moduleName: '@scoped/exports-sugar-esm' },
+        { moduleName: '@scoped/exports-sugarfree-esm' },
         { moduleName: 'cjs-named-exports' },
         { moduleName: 'main-implicit' },
         { moduleName: 'untyped-cjs-and-esm' },
