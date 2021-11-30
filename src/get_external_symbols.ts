@@ -54,7 +54,6 @@ function createResolveModule(
       containingFile,
       ts.getDefaultCompilerOptions(),
       host,
-      // TODO Use cache
     );
     return result.resolvedModule && result.resolvedModule.resolvedFileName;
   };
