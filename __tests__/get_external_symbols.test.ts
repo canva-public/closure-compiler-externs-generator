@@ -1,89 +1,70 @@
 // Copyright 2021 Canva Inc. All Rights Reserved.
 
-import type { ExternalSymbol } from '../src/get_external_symbols';
+import {
+  ExternalSymbol,
+  findSymbolNames,
+  FS,
+} from '../src/get_external_symbols';
 import { getExternalSymbols, SymbolType } from '../src/get_external_symbols';
+import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
+import ts from 'typescript';
 
 describe('getExternalSymbols', () => {
   it('follows imports', () => {
     expect.hasAssertions();
-    const files: { [key: string]: string } = {
-      '/src/entry.d.ts': 'import "./foo"',
-      '/src/foo.d.ts': 'declare const foo: string;',
-    };
-
-    const readFileSync = (path: string) => files[path];
-    const resolveModule = jest.fn().mockReturnValue('/src/foo.d.ts');
-
-    const symbols = getExternalSymbols(
+    testSymbolLookup(
+      {
+        '/src/entry.d.ts': 'import "./foo"',
+        '/src/foo.d.ts': 'declare const foo: string;',
+      },
       ['/src/entry.d.ts'],
       [],
-      readFileSync,
-      resolveModule,
+      [{ name: 'foo', type: SymbolType.DECLARATION }],
     );
-
-    checkSymbols(symbols, [{ name: 'foo', type: SymbolType.DECLARATION }]);
-    expect(resolveModule).toHaveBeenCalledWith('./foo', '/src/entry.d.ts');
   });
 
   it('follows exports with module specifiers', () => {
     expect.hasAssertions();
-    const files: { [key: string]: string } = {
-      '/src/entry.d.ts': 'export { default } from "./foo"',
-      '/src/foo.d.ts': 'declare const foo: string;',
-    };
-
-    const readFileSync = (path: string) => files[path];
-    const resolveModule = jest.fn().mockReturnValue('/src/foo.d.ts');
-
-    const symbols = getExternalSymbols(
+    testSymbolLookup(
+      {
+        '/src/entry.d.ts': 'export { default } from "./foo"',
+        '/src/foo.d.ts': 'declare const foo: string;',
+      },
       ['/src/entry.d.ts'],
       [],
-      readFileSync,
-      resolveModule,
+      [{ name: 'foo', type: SymbolType.DECLARATION }],
     );
-    checkSymbols(symbols, [{ name: 'foo', type: SymbolType.DECLARATION }]);
-    expect(resolveModule).toHaveBeenCalledWith('./foo', '/src/entry.d.ts');
   });
 
   it('follows file references', () => {
     expect.hasAssertions();
-    const files: { [key: string]: string } = {
-      '/src/entry.d.ts': '/// <reference path="sub/ref.entry.d.ts" />',
-      '/src/sub/ref.entry.d.ts': 'declare const foo: string;',
-    };
-
-    const readFileSync = (path: string) => files[path];
-
-    const symbols = getExternalSymbols(
+    testSymbolLookup(
+      {
+        '/src/entry.d.ts': '/// <reference path="sub/ref.entry.d.ts" />',
+        '/src/sub/ref.entry.d.ts': 'declare const foo: string;',
+      },
       ['/src/entry.d.ts'],
       [],
-      readFileSync,
-      () => void 0,
+      [{ name: 'foo', type: SymbolType.DECLARATION }],
     );
-    checkSymbols(symbols, [{ name: 'foo', type: SymbolType.DECLARATION }]);
   });
 
   it('does not follow file references that in the dontFollow list', () => {
     expect.hasAssertions();
-    const files: { [key: string]: string } = {
-      '/src/entry.d.ts': '/// <reference path="sub/ref.entry.d.ts" />',
-      '/src/sub/ref.entry.d.ts': 'declare const foo: string;',
-    };
-
-    const readFileSync = (path: string) => files[path];
-
-    const symbols = getExternalSymbols(
+    testSymbolLookup(
+      {
+        '/src/entry.d.ts': '/// <reference path="sub/ref.entry.d.ts" />',
+        '/src/sub/ref.entry.d.ts': 'declare const foo: string;',
+      },
       ['/src/entry.d.ts'],
       ['/src/sub/ref.entry.d.ts'],
-      readFileSync,
-      () => void 0,
+      [],
     );
-    checkSymbols(symbols, []);
   });
 
   it('gets properties from an interface', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `interface Foo {
         prop: string;
         method(): string;
@@ -97,7 +78,7 @@ describe('getExternalSymbols', () => {
 
   it('gets properties from a type', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `type Foo {
         prop: string;
         method(): string;
@@ -111,7 +92,7 @@ describe('getExternalSymbols', () => {
 
   it('gets properties from a const', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `
       const Foo = {
         prop: 'apple';
@@ -127,7 +108,7 @@ describe('getExternalSymbols', () => {
 
   it('gets properties from a class', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `
       class Foo {
         prop1 = 'banana'; 
@@ -145,12 +126,12 @@ describe('getExternalSymbols', () => {
 
   it('ignores modules', () => {
     expect.hasAssertions();
-    runWithMockFs('declare module Module { }', []);
+    testSymbolExtraction('declare module Module { }', []);
   });
 
   it('gets properties and declarations from namespaces', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `
       declare namespace Parent.Nested { 
         namespace Child { }
@@ -165,7 +146,7 @@ describe('getExternalSymbols', () => {
 
   it('get properties from an enum', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `
       const enum Foo { 
         BAA = 1,
@@ -179,7 +160,7 @@ describe('getExternalSymbols', () => {
 
   it('gets declarations from declared functions, classes and variables', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `
       declare enum Enum { };
       declare function Function(): string;
@@ -201,7 +182,7 @@ describe('getExternalSymbols', () => {
 
   it('gets properties from non-declared functions, classes and variables', () => {
     expect.hasAssertions();
-    runWithMockFs(
+    testSymbolExtraction(
       `
       enum Enum { };
       function Function(): string;
@@ -221,14 +202,37 @@ describe('getExternalSymbols', () => {
     );
   });
 
-  function runWithMockFs(
+  function testSymbolLookup(
+    fsState: DirectoryJSON,
+    declarationFiles: string[],
+    dontFollow: string[],
+    expectedSymbols: { name: string; type: SymbolType }[],
+  ) {
+    const original = Object.assign({}, fsState);
+    const volume = Volume.fromJSON(fsState, '/');
+    const fs = (createFsFromVolume(volume) as unknown) as FS;
+
+    const symbols = getExternalSymbols(declarationFiles, dontFollow, fs, '/');
+
+    checkSymbols(symbols, expectedSymbols);
+    expect(volume.toJSON()).toStrictEqual(original);
+  }
+
+  function testSymbolExtraction(
     declarationContent: string,
     expectedSymbols: { name: string; type: SymbolType }[],
   ) {
-    const symbols = getExternalSymbols(
-      ['dummy'],
-      [],
-      () => declarationContent,
+    const symbols = findSymbolNames(
+      ts.createSourceFile(
+        'dummy',
+        declarationContent,
+        ts.ScriptTarget.ES2015,
+        true,
+      ),
+      new Set(),
+      () => {
+        throw new Error('Should be self contained');
+      },
       () => void 0,
     );
     checkSymbols(symbols, expectedSymbols);
