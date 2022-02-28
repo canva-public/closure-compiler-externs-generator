@@ -19,15 +19,12 @@ npm install --save-dev @canva/closure-compiler-externs-generator
 
 ### CLI
 
-```js
-// path/to/libraries.js, must be CJS
-const CCEG = require('@canva/closure-compiler-externs-generator');
-const applyDefaults = createApplyDefaults(__dirname);
-module.exports.libraries = [{ ... }, { ... }].map(applyDefaults);
-```
-
 ```bash
-npx @canva/closure-compiler-externs-generator --librariesPath ./path/to/libraries.js --out ./my_externs
+# To generate externs from specific declaration files
+npx @canva/closure-compiler-externs-generator declarations googlepay declarations/googlepay.d.ts
+
+# To automatically discover declaration files for installed packages and generate externs for them
+npx @canva/closure-compiler-externs-generator packages react react-dnd
 ```
 
 To include symbol source information in the output add the `--debug` flag to the execution, paths will be relative to current working directory.
@@ -39,7 +36,6 @@ If in a CommonJS context:
 ```js
 const CCEG = require('@canva/closure-compiler-externs-generator');
 const fs = require('node:fs');
-const resolveFrom = __dirname;
 ```
 
 If in a ES module context (NodeJS v12 and up):
@@ -49,23 +45,35 @@ import CCEG from '@canva/closure-compiler-externs-generator';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const resolveFrom = dirname(fileURLToPath(import.meta.url));
 ```
 
 Then use as follows:
 
 ```js
-const applyDefaults = CCEG.createApplyDefaults(resolveFrom);
-const libraries = [{ ... }, { ... }].map(applyDefaults);
-
-CCEG.processLibraries(
+CCEG.generateExternsForPackages({
   // Where externs will be written
-  './my_externs',
-  libraries,
-  // `true` to include symbol source information
-  false,
-  fs,
-);
+  outPath: './my_externs',
+  packages: [
+    // declaration files will be read from
+    // 'node_modules/react/**/*.d.ts' and
+    // 'node_modules/@typesreact/**/*.d.ts'
+    { name: 'react' },
+    {
+      name: 'some_module',
+      // manually override the declaration globs
+      declarationGlobs: ['declarations/some_module.d.t.s'],
+    },
+  ],
+});
+
+CCEG.generateExterns({
+  // Where externs will be written
+  outPath: './my_externs',
+  // The name of the output files, googlepay.js
+  identifier: 'googlepay',
+  // The declarations to generate from.
+  declarations: ['declarations/googlepage.d.ts'],
+});
 ```
 
 ## Why Externs?

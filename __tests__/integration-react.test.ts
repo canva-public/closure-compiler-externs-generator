@@ -1,12 +1,14 @@
-import { createApplyDefaults, processLibraries, FS } from '../src/index';
+import { generateExternsForPackages } from '../src/index';
 import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
 import * as path from 'path';
+import fs from 'fs';
 
 const fixturesDir = path.resolve(__dirname, '..');
+type FS = Pick<typeof fs, 'mkdirSync' | 'writeFileSync'>;
 
 function createVolumeAndFs() {
   const volume = new Volume();
-  const fs = (createFsFromVolume(volume) as unknown) as FS;
+  const fs = createFsFromVolume(volume) as FS;
 
   return {
     fs,
@@ -31,27 +33,26 @@ function normaliseVolumeSnapshot(directoryJSON: DirectoryJSON): DirectoryJSON {
 describe('externs-generator with react', () => {
   it('without debug', () => {
     expect.hasAssertions();
-    const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
     const { volume, fs } = createVolumeAndFs();
-    processLibraries(
-      path.join(fixturesDir, 'out'),
-      [{ moduleName: 'react' }].map(tailoredApplyDefaults),
-      false,
-      fs,
-    );
+    generateExternsForPackages({
+      outPath: path.join(fixturesDir, 'out'),
+      packages: [{ name: 'react' }],
+      fileSystem: fs,
+      packageRoot: path.join(fixturesDir, 'node_modules'),
+    });
     expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
   });
 
   it('with debug', () => {
     expect.hasAssertions();
-    const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
     const { volume, fs } = createVolumeAndFs();
-    processLibraries(
-      path.join(fixturesDir, 'out'),
-      [{ moduleName: 'react' }].map(tailoredApplyDefaults),
-      true,
-      fs,
-    );
+    generateExternsForPackages({
+      outPath: path.join(fixturesDir, 'out'),
+      packages: [{ name: 'react' }],
+      debug: true,
+      fileSystem: fs,
+      packageRoot: path.join(fixturesDir, 'node_modules'),
+    });
     expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
   });
 });

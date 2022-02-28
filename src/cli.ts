@@ -1,64 +1,70 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { Library } from './library';
-import assert from 'assert';
-import { processLibraries } from './index';
-
-const name = '@canva/closure-compiler-externs-generator';
-
-function usage() {
-  console.log(`usage: ${name} --out <dir> --librariesPath <path>  [--debug]
-  
-  Generates Closure Compiler externs from the TypeScript declaration (.d.ts) files of libraries in
-  the given libraries files.
-
-    --librariesPath expects a file exporting an array of library definitions as a named export called 'libraries'.
-  
-    The optional '--debug' flag will add line information to the output
-  
-  example:
-  ${name} --librariesPath /path/to/libraries.js --out externs/generated/`);
-}
+import { generateExterns, generateExternsForPackages, Package } from './index';
+import yargs from 'yargs';
 
 export function main(): void {
-  let out: string | undefined;
-  let libraries: Library[] | undefined;
-  let debug = false;
-  const args = process.argv.slice(2);
-  while (args.length) {
-    const arg = args.shift();
-    switch (arg) {
-      case '--help':
-        usage();
-        process.exit();
-        break;
-      case '--out':
-        out = args.shift();
-        break;
-      case '--librariesPath': {
-        const librariesPath = args.shift();
-        assert(librariesPath, 'No libraries path given');
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        libraries = require(path.resolve(librariesPath)).libraries;
-        break;
-      }
-      case '--debug':
-        debug = true;
-        break;
-      default:
-        console.log('error: unknown argument: ' + arg);
-        process.exit(1);
+  const args = yargs
+    .command(
+      'packages <packages...>',
+      'Generates Closure Compiler externs from the TypeScript declaration (.d.ts) files of the given packages.',
+      (yargs) =>
+        yargs
+          .positional('packages', {
+            describe: 'packages',
+            array: true,
+            type: 'string',
+            demandOption: true,
+          })
+          .option('package-root', { type: 'string', default: 'node_modules' })
+          .example(
+            '$0 packages react react-dom',
+            'Generates externs for the type files of the react and react-dom packages.',
+          ),
+    )
+    .command(
+      'declarations [identifier] <declarations...>',
+      'Generates Closure Compiler externs from the provided declaration files.',
+      (yargs) =>
+        yargs
+          .positional('declarations', {
+            describe: 'declarations',
+            demandOption: true,
+            array: true,
+            type: 'string',
+          })
+          .positional('identifier', {
+            describe: 'identifier',
+            type: 'string',
+            demandOption: true,
+          })
+          .example(
+            '$0 declarations my_externs foo.d.ts baa.d.ts',
+            'Generates externs from the foo and baa files and outputs them to the my_externs.js file',
+          ),
+    )
+    .option('debug', { type: 'boolean' })
+    .option('out-path', { type: 'string', default: process.cwd() })
+    .parseSync();
+
+  const command = args._[0];
+  switch (command) {
+    case 'packages': {
+      const packages: Package[] = args.packages.map((name) => ({ name }));
+      generateExternsForPackages({ ...args, packages });
+      break;
     }
+    case 'declarations': {
+      generateExterns({
+        ...args,
+        declarationFiles: args.declarations,
+        identifier: args.identifier,
+      });
+      break;
+    }
+    default:
+      throw new Error(`Unknown command ${command}`);
   }
-
-  assert(out, 'missing --out argument');
-  assert(libraries, 'missing --librariesPath argument');
-
-  const outPath: string = path.resolve(out);
-
-  processLibraries(outPath, libraries, debug, fs);
 }
 
 main();

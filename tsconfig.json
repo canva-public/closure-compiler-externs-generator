@@ -8,7 +8,8 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
     "moduleResolution": "node",
-    "outDir": "dist"
+    "outDir": "dist",
+    "lib": ["ES2019.Array"]
   },
   "include": ["src"]
 }

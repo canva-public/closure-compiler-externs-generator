@@ -1,18 +1,20 @@
-import {
-  createApplyDefaults,
-  processLibraries,
-  FS,
-  Library,
-} from '../src/index';
+import { generateExternsForPackages, Package } from '../src/packages';
 import { Volume, createFsFromVolume, DirectoryJSON } from 'memfs';
-import { libraries } from './fixtures/libraries';
 import * as path from 'path';
+import fs from 'fs';
+
+const packages: readonly Package[] = [
+  { name: 'main-implicit' },
+  { name: 'untyped-cjs' },
+];
 
 const fixturesDir = path.resolve(__dirname, 'fixtures');
 
+type FS = Pick<typeof fs, 'mkdirSync' | 'writeFileSync'>;
+
 function createVolumeAndFs() {
   const volume = new Volume();
-  const fs = (createFsFromVolume(volume) as unknown) as FS;
+  const fs = createFsFromVolume(volume) as FS;
 
   return {
     fs,
@@ -34,17 +36,15 @@ function normaliseVolumeSnapshot(directoryJSON: DirectoryJSON): DirectoryJSON {
   return newDirectoryJSON;
 }
 
-function snapshotLibraries(
-  libraries: Partial<Library> & { moduleName: string }[],
-) {
-  const tailoredApplyDefaults = createApplyDefaults(fixturesDir);
+function snapshotLibraries(packages: Package[]) {
   const { volume, fs } = createVolumeAndFs();
-  processLibraries(
-    path.join(fixturesDir, 'out'),
-    libraries.map(tailoredApplyDefaults),
-    false,
-    fs,
-  );
+  generateExternsForPackages({
+    outPath: path.join(fixturesDir, 'out'),
+    packages: packages,
+    debug: false,
+    fileSystem: fs,
+    packageRoot: path.join(fixturesDir, 'node_modules'),
+  });
   expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
 }
 
@@ -55,7 +55,13 @@ describe('externs-generator', () => {
       (debug) => {
         expect.hasAssertions();
         const { volume, fs } = createVolumeAndFs();
-        processLibraries(path.join(fixturesDir, 'out'), libraries, debug, fs);
+        generateExternsForPackages({
+          outPath: path.join(fixturesDir, 'out'),
+          packages,
+          debug,
+          fileSystem: fs,
+          packageRoot: path.join(fixturesDir, 'node_modules'),
+        });
         expect(normaliseVolumeSnapshot(volume.toJSON())).toMatchSnapshot();
       },
     );
@@ -63,22 +69,22 @@ describe('externs-generator', () => {
     it('for scoped modules', () => {
       expect.hasAssertions();
       snapshotLibraries([
-        { moduleName: '@scoped/exports-sugar-esm' },
-        { moduleName: 'cjs-named-exports' },
-        { moduleName: 'main-implicit' },
-        { moduleName: 'untyped-cjs-and-esm' },
-        { moduleName: 'untyped-cjs' },
+        { name: '@scoped/exports-sugar-esm' },
+        { name: 'cjs-named-exports' },
+        { name: 'main-implicit' },
+        { name: 'untyped-cjs-and-esm' },
+        { name: 'untyped-cjs' },
       ]);
     });
 
     it('for various single-export modules', () => {
       expect.hasAssertions();
       snapshotLibraries([
-        { moduleName: 'cjs-named-exports' },
-        { moduleName: 'main-implicit' },
-        { moduleName: 'typings-synonym' },
-        { moduleName: 'untyped-cjs-and-esm' },
-        { moduleName: 'untyped-cjs' },
+        { name: 'cjs-named-exports' },
+        { name: 'main-implicit' },
+        { name: 'typings-synonym' },
+        { name: 'untyped-cjs-and-esm' },
+        { name: 'untyped-cjs' },
       ]);
     });
   });
