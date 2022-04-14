@@ -8,7 +8,7 @@
  * Outputs a single extern file for each library with the path <out argument>/<module name>.js.
  */
 
-import * as fs from 'fs';
+import type fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import type * as ts from 'typescript';
@@ -17,6 +17,7 @@ import type { ExternalSymbol } from './get_external_symbols';
 import { getExternalSymbols } from './get_external_symbols';
 import { Library } from './library';
 export { applyDefaults, createApplyDefaults, Library } from './library';
+import { deprecate } from 'util';
 
 /**
  * Generates a description of the symbol location in the declaration file, e.g.
@@ -39,10 +40,15 @@ function positionDescription(
   return `${fileName} (${line + 1}:${character + 1})`;
 }
 
-export type FS = {
-  mkdirSync: typeof fs.mkdirSync;
-  writeFileSync: typeof fs.writeFileSync;
-};
+export type FS = Pick<
+  typeof fs,
+  | 'statSync'
+  | 'readFileSync'
+  | 'readdirSync'
+  | 'realpathSync'
+  | 'mkdirSync'
+  | 'writeFileSync'
+>;
 
 /**
  * Write the symbols to an extern file in the form:
@@ -151,11 +157,17 @@ function getDeclarationPaths(
   );
 }
 
+const defaultResolveFrom = deprecate(
+  () => __dirname,
+  '"processLibraries" retrieves information relative to the "@canva/closure-compiler-externs-generator" package when argument "resolveFrom" is not used. Incorrect modules may be resolved.',
+);
+
 export function processLibraries(
   outPath: string,
   libraries: readonly Library[],
   debug: boolean,
   fileSystem: FS,
+  resolveFrom: string = defaultResolveFrom(),
 ): void {
   const libraryToDeclarationPaths = getDeclarationPaths(libraries);
 
@@ -169,7 +181,12 @@ export function processLibraries(
   }
 
   for (const [safeModuleName, declarationPaths] of libraryToDeclarationPaths) {
-    const symbols = getExternalSymbols(declarationPaths, allPaths);
+    const symbols = getExternalSymbols(
+      declarationPaths,
+      allPaths,
+      fileSystem,
+      resolveFrom,
+    );
     if (symbols.length) {
       writeSymbols(
         path.join(outPath, `${safeModuleName}.js`),

@@ -1,5 +1,6 @@
-import { resolve, dirname, join } from 'path';
+import { resolve, join } from 'path';
 import { deprecate } from 'util';
+import fs from 'fs';
 
 export type Library = {
   // The name used to import the module.
@@ -31,7 +32,9 @@ function moduleNameToIdentifier(s: string): string {
   return ret;
 }
 
-export function createApplyDefaults(from: string) {
+export type FS = Pick<typeof fs, 'existsSync'>;
+
+export function createApplyDefaults(from: string, fileSystem: FS = fs) {
   return ({
     declarationGlobs,
     ...library
@@ -39,8 +42,8 @@ export function createApplyDefaults(from: string) {
     identifier: moduleNameToIdentifier(library.moduleName),
     externImports: [],
     declarationGlobs: [
-      attemptResolve(library.moduleName, from),
-      attemptResolve(`@types/${library.moduleName}`, from),
+      attemptResolve(library.moduleName, from, fileSystem),
+      attemptResolve(`@types/${library.moduleName}`, from, fileSystem),
       ...(declarationGlobs || []),
     ].filter((glob): glob is string => !!glob),
     ...library,
@@ -49,20 +52,42 @@ export function createApplyDefaults(from: string) {
 
 /** @deprecated */
 export const applyDefaults = deprecate(
-  createApplyDefaults(__dirname),
+  createApplyDefaults(__dirname, fs),
   '"applyDefaults" retrieves information relative to the "@canva/closure-compiler-externs-generator" package, incorrect modules may be resolved. Use "createApplyDefaults" instead.',
 );
 
-function attemptResolve(moduleName: string, from: string): string | null {
-  let p: string;
-  try {
-    p = require.resolve(join(moduleName, 'package.json'), { paths: [from] });
-  } catch (e) {
-    if (e.code === 'MODULE_NOT_FOUND') {
-      return null;
-    }
-    /* istanbul ignore next */
-    throw e;
+function attemptResolve(
+  moduleName: string,
+  from: string,
+  fileSystem: FS,
+): string | null {
+  const modulePath = findPackage(from, moduleName, fileSystem);
+  if (!modulePath) {
+    return null;
   }
-  return resolve(`${dirname(p)}/**/*.d.ts`);
+  return join(modulePath, '/**/*.d.ts');
+}
+
+/**
+ * Traverses up file system to find requested package (matching on `node_modules/{moduleName}/`).
+ */
+function findPackage(
+  resolveFrom: string,
+  moduleName: string,
+  fileSystem: FS,
+): string | null {
+  let searchPath: string | false = resolveFrom;
+  while (searchPath) {
+    const proposedModulepath = join(searchPath, 'node_modules', moduleName);
+    if (fileSystem.existsSync(proposedModulepath)) {
+      return proposedModulepath;
+    }
+    if (searchPath === resolve('/')) {
+      searchPath = false;
+    } else {
+      searchPath = resolve(searchPath, '..');
+    }
+  }
+
+  return null;
 }

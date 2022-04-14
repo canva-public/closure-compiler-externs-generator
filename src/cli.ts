@@ -58,7 +58,7 @@ export function main(): void {
 
   const outPath: string = path.resolve(out);
 
-  processLibraries(outPath, libraries, debug, fs);
+  processLibraries(outPath, libraries, debug, fs, process.cwd());
 }
 
 main();
