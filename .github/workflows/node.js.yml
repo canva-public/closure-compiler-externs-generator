@@ -26,5 +26,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile
       - run: yarn test
+      - uses: AutoModality/action-clean@v1
+      - uses: actions/checkout@v3
       - run: npm install
       - run: npm pack
