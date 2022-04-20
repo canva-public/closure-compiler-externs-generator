@@ -1,6 +1,6 @@
 {
   "name": "@canva/closure-compiler-externs-generator",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Generates externs for closure compiler from TypeScript declarations",
   "files": [
     "dist"
@@ -33,9 +33,8 @@
     "pretest": "prettier --check . && yarn eslint",
     "test": "jest --ci --coverage",
     "test:watch": "jest --watch --notify",
-    "preprepare": "husky install",
-    "prepack": "tsc --declarationDir dist --declaration",
-    "prepare": "rm -rf ./dist"
+    "prepack": "rm -rf ./dist && tsc --declarationDir dist --declaration",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",
@@ -45,5 +44,8 @@
     "fast-glob": "^3.2.11",
     "typescript": "^4.2.4",
     "yargs": "^17.3.1"
+  },
+  "engines": {
+    "node": "12.x || 14.x || 16.x"
   }
 }
